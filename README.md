@@ -2,10 +2,4 @@
 
 Cross-platfrom obj files renderer.
 
-Supproted palfroms:
-	- android
-	- ios
-	- linux
-	- macos
-	- web
-	- windows
+Supproted palfroms: android, ios, linux, macos, web, windows
