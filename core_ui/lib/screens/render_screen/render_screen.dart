@@ -21,11 +21,11 @@ class RenderScreen extends StatelessWidget {
         future: Future(() => ObjParser().parseContent(_rawContent)),
         builder: (_, AsyncSnapshot<List<RenderObjectEntity>> snapshot) {
           if (snapshot.hasData) {
-            return const Column(
+            return Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                AppCustomPaint(),
-                AppButton(text: 'Back to picking')
+                AppCustomPaint(entities: snapshot.data!),
+                const AppButton(text: 'Back to picking')
               ],
             );
           }
