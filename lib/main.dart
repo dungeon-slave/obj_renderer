@@ -1,4 +1,4 @@
-import 'package:core_ui/widgets/file_picker_screen/file_picker_screen.dart';
+import 'package:core_ui/screens/file_picker_screen/file_picker_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
