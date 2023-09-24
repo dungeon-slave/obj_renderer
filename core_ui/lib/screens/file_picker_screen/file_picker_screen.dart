@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:core_ui/app_text_style.dart';
 import 'package:core_ui/core_ui.dart';
@@ -12,8 +14,10 @@ class FilePickerScreen extends StatelessWidget {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
 
     if (result != null) {
-      String rawContent =
-          utf8.decode(result.files.first.bytes?.toList() ?? <int>[]);
+      Uint8List bytes = result.files.first.bytes == null
+          ? await File(result.files.first.path!).readAsBytes()
+          : result.files.first.bytes!;
+      String rawContent = utf8.decode(bytes);
 
       navigatorState.push(
         MaterialPageRoute(
