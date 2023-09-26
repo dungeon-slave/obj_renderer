@@ -1,8 +1,8 @@
-import 'package:data/entities/render_object_entity.dart';
+import 'package:data/data.dart' hide Colors;
 import 'package:flutter/material.dart';
 
 class AppCustomPainter extends CustomPainter {
-  final List<RenderObjectEntity> entities;
+  final List<Vector4> entities;
 
   AppCustomPainter({
     required this.entities,
@@ -10,12 +10,15 @@ class AppCustomPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // TODO: implement paint
+    for (int i = 0; i < entities.length - 1; i++) {
+      canvas.drawLine(
+        Offset(entities[i].x, entities[i].y),
+        Offset(entities[i + 1].x, entities[i + 1].y),
+        Paint()..color = Colors.black,
+      );
+    }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    // TODO: implement shouldRepaint
-    throw UnimplementedError();
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

@@ -25,7 +25,10 @@ class RenderScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 AppCustomPaint(entities: snapshot.data!),
-                const AppButton(text: 'Back to picking')
+                AppButton(
+                  text: 'Back to picking',
+                  handler: Navigator.of(context).pop,
+                ),
               ],
             );
           }

@@ -3,19 +3,21 @@ import 'package:flutter/material.dart';
 
 class AppButton extends StatelessWidget {
   final String _text;
+  final void Function() _handler;
 
   const AppButton({
     required String text,
+    required void Function() handler,
     super.key,
-  }) : _text = text;
+  })  : _text = text,
+        _handler = handler;
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.sizeOf(context);
-    NavigatorState navigatorState = Navigator.of(context);
 
     return GestureDetector(
-      onTap: navigatorState.pop,
+      onTap: _handler,
       child: Container(
         height: size.height / 10,
         width: size.width * 0.75,

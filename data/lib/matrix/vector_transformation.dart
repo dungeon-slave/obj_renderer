@@ -1,28 +1,45 @@
-import 'package:data/matrix/transform_matrix.dart';
+import 'package:data/entities/face_entity.dart';
+import 'package:data/entities/vertex_entity.dart';
 import 'package:vector_math/vector_math.dart';
 
-import '../entities/geometric_vertex_entity.dart';
+abstract class VectorTransformation {
+  static List<Vector4> transformToWorldSpace({
+    required List<FaceEntity> faces,
+    required Vector3 translate,
+    required Vector3 scale,
+  }) {
+    final List<Vector4> vectors = <Vector4>[];
 
-class VectorTransformation {
-  static void transformToWorldSpace(
-    List<GeometricVertexEntity> values,
-    Vector3 translate,
-    Vector3 scale,
-  ) {
-    final List<Vector4> vectors = values
-        .map((GeometricVertexEntity e) => Vector4(e.x, e.y, e.z, e.w))
-        .toList();
+    for (FaceEntity face in faces) {
+      for (VertexEntity vertex in face.vertices) {
+        vectors.add(
+          Vector4(
+            vertex.v!.x,
+            vertex.v!.y,
+            vertex.v!.z,
+            vertex.v!.w,
+          ),
+        );
+      }
+    }
 
-    final Matrix4 scaleMatrix = TransformMatrix.scaleMatrix(scale);
-    //TODO: add rotateMatrix = TransformMatrix.rotate{X or Y or Z}(value) here
-    //also we should discuss later what params we will pass to transformToWorldSpace method
-    final Matrix4 translateMatrix = TransformMatrix.translateMatrix(translate);
+    final Matrix4 matrix = Matrix4.compose(
+      translate,
+      Quaternion.fromRotation(
+        Matrix3.columns(
+          Vector3(1, 0, 0),
+          Vector3(0, 1, 0),
+          Vector3(0, 0, 1),
+        ),
+      ),
+      scale * 3,
+    );
 
-    final Matrix4 matrix = scaleMatrix * translateMatrix;
     //TODO: if we add rotateMatrix it then multiplication should look like this -> scaleMatrix * rotateMatrix * translateMatrix
 
-    final List<Vector4> res = vectors
-        .map((Vector4 vector) => matrix * vector)
-        .toList() as List<Vector4>;
+    final List<dynamic> result =
+        vectors.map((Vector4 vector) => matrix * vector).toList();
+
+    return result.cast<Vector4>();
   }
 }
