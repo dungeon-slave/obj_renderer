@@ -2,7 +2,7 @@ import 'package:data/data.dart' hide Colors;
 import 'package:flutter/material.dart';
 
 class AppCustomPainter extends CustomPainter {
-  final List<Vector4> entities;
+  final Map<int, List<Vector4>> entities;
 
   AppCustomPainter({
     required this.entities,
@@ -10,13 +10,23 @@ class AppCustomPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    for (int i = 0; i < entities.length - 1; i++) {
-      canvas.drawLine(
-        Offset(entities[i].x, entities[i].y),
-        Offset(entities[i + 1].x, entities[i + 1].y),
-        Paint()..color = Colors.black,
-      );
+    final Paint paint = Paint()..color = Colors.black;
+
+    for (var entity in entities.values) {
+      for (int i = 0; i < entity.length - 1; i++) {
+        canvas.drawLine(
+          Offset(entity[i].x, entity[i].y),
+          Offset(entity[i + 1].x, entity[i + 1].y),
+          paint,
+        );
+      }
     }
+
+    // canvas.drawLine(
+    //   Offset(entities[entities.length - 1].x, entities[entities.length - 1].y),
+    //   Offset(entities[0].x, entities[0].y),
+    //   paint,
+    // );
   }
 
   @override
