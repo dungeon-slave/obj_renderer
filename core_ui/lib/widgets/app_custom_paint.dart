@@ -6,74 +6,64 @@ import 'package:data/matrix/vector_transformation.dart';
 import 'package:flutter/material.dart';
 
 class AppCustomPaint extends StatefulWidget {
-  final List<RenderObjectEntity> entities;
+  final List<RenderObjectEntity> _entities;
 
   const AppCustomPaint({
-    required this.entities,
+    required List<RenderObjectEntity> entities,
     super.key,
-  });
+  }) : _entities = entities;
 
   @override
-  State<StatefulWidget> createState() => AppCustomPaintState();
+  _AppCustomPaintState createState() => _AppCustomPaintState();
 }
 
-class AppCustomPaintState extends State<AppCustomPaint> {
-  double scaleFactor = 1;
-  double xPos = 0;
-  double yPos = 0;
-  double zPos = 0;
-  double xRotation = 0;
-  double yRotation = 0;
-  double zRotation = 0;
-
-  late Map<int, List<Vector4>> entities1 = _fetchVectors(Size(100, 100));
+class _AppCustomPaintState extends State<AppCustomPaint> {
+  Vector3 _position = Vector3(0, 0, 0);
+  Vector3 _scale = Vector3(1, 1, 1);
+  Vector3 _rotation = Vector3(0, 0, 0);
 
   Map<int, List<Vector4>> _fetchVectors(Size size) {
     final Map<int, List<Vector4>> result = <int, List<Vector4>>{};
-    final Vector3 translate = Vector3(xPos, yPos, zPos);
-    final Vector3 scale = Vector3(scaleFactor, scaleFactor, scaleFactor);
 
-    for (RenderObjectEntity entity in widget.entities) {
+    for (RenderObjectEntity entity in widget._entities) {
       for (int j = 0; j < entity.faces.length; j++) {
-        List<Vector4> currResult = VectorTransformation.transformToWorldSpace(
-          face: entity.faces[j],
-          translate: translate,
-          scale: scale,
-          width: size.width,
-          height: size.height,
-          xRotationRadians: xRotation,
-          yRotationRadians: yRotation,
-          zRotationRadians: zRotation,
+        result.addAll(
+          {
+            j: VectorTransformation.transformToWorldSpace(
+              vertices: entity.faces[j].vertices,
+              translate: _position,
+              scale: _scale,
+              rotation: _rotation,
+              size: size,
+            ),
+          },
         );
-        result.addAll({j: currResult});
       }
     }
 
     return result;
   }
 
-  void scaleHandler(double value) {
-    scaleFactor = value;
-    entities1 = _fetchVectors(Size(100, 100));
-
+  void _scaleHandler(double value) {
+    _scale = Vector3.all(value);
     setState(() {});
   }
 
-  void translationHandler({double? xValue, double? yValue, double? zValue}) {
-    xPos = xValue ?? xPos;
-    yPos = yValue ?? yPos;
-    zPos = zValue ?? zPos;
-    entities1 = _fetchVectors(Size(100, 100));
-
+  void _translationHandler({double? xValue, double? yValue, double? zValue}) {
+    _position = Vector3(
+      xValue ?? _position.x,
+      yValue ?? _position.y,
+      zValue ?? _position.z,
+    );
     setState(() {});
   }
 
-  void rotationHandler({double? xValue, double? yValue, double? zValue}) {
-    xRotation = xValue ?? xRotation;
-    yRotation = yValue ?? yRotation;
-    zRotation = zValue ?? zRotation;
-    entities1 = _fetchVectors(Size(100, 100));
-
+  void _rotationHandler({double? xValue, double? yValue, double? zValue}) {
+    _rotation = Vector3(
+      xValue ?? _rotation.x,
+      yValue ?? _rotation.y,
+      zValue ?? _rotation.z,
+    );
     setState(() {});
   }
 
@@ -84,65 +74,73 @@ class AppCustomPaintState extends State<AppCustomPaint> {
     return Container(
       decoration: BoxDecoration(border: Border.all()),
       child: Column(
-        children: [
+        children: <Row>[
           Row(
             children: <Widget>[
               CustomPaint(
-                size: size * 0.75,
-                painter: AppCustomPainter(entities: entities1),
+                size: size * 0.5,
+                painter: AppCustomPainter(
+                  entities: _fetchVectors(Size(100, 100)),
+                ),
               ),
-              //scaling
+
+              //TODO: We should separate controls and drawing
               VerticalSlider(
-                scaleHandler,
-                scaleFactor,
-                1,
-                2,
+                description: 'Scaling',
+                slideHandler: _scaleHandler,
+                slideValue: _scale.x,
+                min: 1,
+                max: 2,
               ),
-              //x translation
               VerticalSlider(
-                (double value) => translationHandler(xValue: value),
-                xPos,
-                0,
-                10,
+                description: 'X translation',
+                slideHandler: (double value) =>
+                    _translationHandler(xValue: value),
+                slideValue: _position.x,
+                min: 0,
+                max: 10,
               ),
-              //y translation
               VerticalSlider(
-                (double value) => translationHandler(yValue: value),
-                yPos,
-                0,
-                10,
+                description: 'Y translation',
+                slideHandler: (double value) =>
+                    _translationHandler(yValue: value),
+                slideValue: _position.y,
+                min: 0,
+                max: 10,
               ),
-              //z translation
               VerticalSlider(
-                (double value) => translationHandler(zValue: value),
-                zPos,
-                0,
-                10,
+                description: 'Z translation',
+                slideHandler: (double value) =>
+                    _translationHandler(zValue: value),
+                slideValue: _position.z,
+                min: 0,
+                max: 10,
               ),
             ],
           ),
           Row(
-            children: [
-              //x rotation
+            children: <VerticalSlider>[
               VerticalSlider(
-                (double value) => rotationHandler(xValue: value),
-                xRotation,
-                0,
-                3.14,
+                description: 'X rotation',
+                slideHandler: (double value) => _rotationHandler(xValue: value),
+                slideValue: _rotation.x,
+                min: 0,
+                //TODO: fix bug: when set maximum rotation program drops exception
+                max: 3.14,
               ),
-              //y rotation
               VerticalSlider(
-                (double value) => rotationHandler(yValue: value),
-                yRotation,
-                0,
-                3.14,
+                description: 'Y rotation',
+                slideHandler: (double value) => _rotationHandler(yValue: value),
+                slideValue: _rotation.y,
+                min: 0,
+                max: 3.14,
               ),
-              //z rotation
               VerticalSlider(
-                (double value) => rotationHandler(zValue: value),
-                zRotation,
-                0,
-                3.14,
+                description: 'Z rotation',
+                slideHandler: (double value) => _rotationHandler(zValue: value),
+                slideValue: _rotation.z,
+                min: 0,
+                max: 3.14,
               ),
             ],
           ),

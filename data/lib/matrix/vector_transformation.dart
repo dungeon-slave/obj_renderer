@@ -1,24 +1,22 @@
-import 'package:data/entities/face_entity.dart';
 import 'package:data/entities/vertex_entity.dart';
 import 'package:data/matrix/transform_matrix.dart';
-import 'package:vector_math/vector_math.dart';
+import 'package:flutter/material.dart';
+import 'package:vector_math/vector_math.dart' as math;
 
 abstract class VectorTransformation {
-  static List<Vector4> transformToWorldSpace({
-    required FaceEntity face,
-    required Vector3 translate,
-    required Vector3 scale,
-    required double width,
-    required double height,
-    required double xRotationRadians,
-    required double yRotationRadians,
-    required double zRotationRadians,
+  //TODO: rename because we transform not only in world space (or separate)
+  static List<math.Vector4> transformToWorldSpace({
+    required List<VertexEntity> vertices,
+    required math.Vector3 translate,
+    required math.Vector3 scale,
+    required math.Vector3 rotation,
+    required Size size,
   }) {
-    final List<Vector4> vectors = <Vector4>[];
+    final List<math.Vector4> vectors = <math.Vector4>[];
 
-    for (VertexEntity vertex in face.vertices) {
+    for (VertexEntity vertex in vertices) {
       vectors.add(
-        Vector4(
+        math.Vector4(
           vertex.v!.x,
           vertex.v!.y,
           vertex.v!.z,
@@ -27,44 +25,26 @@ abstract class VectorTransformation {
       );
     }
 
-    // final Matrix4 model = Matrix4.compose(
-    //   translate,
-    //   //Quaternion(0, 0, 0, 0),
-    //   Quaternion.fromRotation(
-    //     Matrix3.rotationX(0),
-    //   ),
-    //   scale,
-    // );
+    final math.Matrix4 model = TransformMatrix.scaleMatrix(scale) *
+        TransformMatrix.xRotationMatrix(rotation.x) *
+        TransformMatrix.yRotationMatrix(rotation.y) *
+        TransformMatrix.zRotationMatrix(rotation.z) *
+        TransformMatrix.translateMatrix(translate);
 
-    final Matrix4 model = TransformMatrix.translateMatrix(translate) *
-        TransformMatrix.xRotationMatrix(xRotationRadians) *
-        TransformMatrix.yRotationMatrix(yRotationRadians) *
-        TransformMatrix.zRotationMatrix(zRotationRadians) *
-        TransformMatrix.scaleMatrix(scale);
-    //Matrix4 perspective = TransformMatrix.createPerspectiveMatrix();
-
-    final Matrix4 result = TransformMatrix.createViewPort(
-          100,
-          100,
+    final math.Matrix4 result = TransformMatrix.createViewPort(
+          size.width,
+          size.height,
         ) *
         TransformMatrix.createPerspectiveMatrix() *
         TransformMatrix.createViewMatrix() *
         model;
 
-    // result = model * TransformMatrix.createViewMatrix() * TransformMatrix.createPerspectiveMatrix() * TransformMatrix.createViewPort();
-    //matrix *
+    final List<math.Vector4> vecResult = vectors
+        .map<math.Vector4>(
+          (math.Vector4 vector) => result * vector / vector.w,
+        )
+        .toList();
 
-    //TODO: if we add rotateMatrix it then multiplication should look like this -> scaleMatrix * rotateMatrix * translateMatrix
-
-    final List<dynamic> vecResult = vectors.map(
-      (Vector4 vector) {
-        Vector4 result1;
-        result1 = result * vector;
-
-        return result1 / vector.w;
-      },
-    ).toList();
-
-    return vecResult.cast<Vector4>();
+    return vecResult;
   }
 }
