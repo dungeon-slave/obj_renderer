@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math.dart' as math;
 
 abstract class VectorTransformation {
-  //TODO: rename because we transform not only in world space (or separate)
-  static List<math.Vector4> transformToWorldSpace({
+  static List<math.Vector4> transform({
     required List<VertexEntity> vertices,
     required math.Vector3 translate,
     required math.Vector3 scale,

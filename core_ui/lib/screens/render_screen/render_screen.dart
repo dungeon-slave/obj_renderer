@@ -77,7 +77,7 @@ class _RenderScreenState extends State<RenderScreen> {
       for (int j = 0; j < entity.faces.length; j++) {
         result.addAll(
           {
-            j: VectorTransformation.transformToWorldSpace(
+            j: VectorTransformation.transform(
               vertices: entity.faces[j].vertices,
               translate: _position,
               scale: _scale,
