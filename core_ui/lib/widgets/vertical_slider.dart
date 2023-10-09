@@ -22,29 +22,31 @@ class VerticalSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        RotatedBox(
-          quarterTurns: 3,
-          child: Material(
-            color: Colors.blue,
-            child: Slider(
-              secondaryActiveColor: Colors.black,
-              inactiveColor: Colors.black,
-              activeColor: Colors.black,
-              thumbColor: Colors.black,
-              min: _min,
-              max: _max,
-              value: _slideValue,
-              onChanged: _slideHandler,
+    return Flexible(
+      child: Column(
+        children: <Widget>[
+          RotatedBox(
+            quarterTurns: 3,
+            child: Material(
+              color: Colors.blue,
+              child: Slider(
+                secondaryActiveColor: Colors.black,
+                inactiveColor: Colors.black,
+                activeColor: Colors.black,
+                thumbColor: Colors.black,
+                min: _min,
+                max: _max,
+                value: _slideValue,
+                onChanged: _slideHandler,
+              ),
             ),
           ),
-        ),
-        Text(
-          _description,
-          style: appTextStyle.copyWith(fontSize: 18),
-        ),
-      ],
+          Text(
+            _description,
+            style: appTextStyle.copyWith(fontSize: 18),
+          ),
+        ],
+      ),
     );
   }
 }
