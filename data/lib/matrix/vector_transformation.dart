@@ -14,6 +14,9 @@ abstract class VectorTransformation {
     final List<math.Vector4> vectors = <math.Vector4>[];
 
     for (VertexEntity vertex in vertices) {
+      if (vertex.v == null) {
+        continue;
+      }
       vectors.add(
         math.Vector4(
           vertex.v!.x,
@@ -24,25 +27,45 @@ abstract class VectorTransformation {
       );
     }
 
-    final math.Matrix4 model = TransformMatrix.scaleMatrix(scale) *
+    final math.Matrix4 model = TransformMatrix.translateMatrix(translate) *
         TransformMatrix.xRotationMatrix(rotation.x) *
         TransformMatrix.yRotationMatrix(rotation.y) *
         TransformMatrix.zRotationMatrix(rotation.z) *
-        TransformMatrix.translateMatrix(translate);
+        TransformMatrix.scaleMatrix(scale);
 
-    final math.Matrix4 result = TransformMatrix.createViewPort(
+    // final math.Matrix4 result = TransformMatrix.createViewPort(
+    //       size.width,
+    //       size.height,
+    //     ) *
+    //     TransformMatrix.createPerspectiveMatrix() *
+    //     TransformMatrix.createViewMatrix() *
+    //     model;
+
+    //model * vector
+    //view * newVector
+    //perspective * newVector2
+    //newVector2 / newVector2.w
+    //viewPort * newVector3
+
+    final List<math.Vector4> vecResult = vectors.map<math.Vector4>(
+      (math.Vector4 vector) {
+        final newVector = model * vector;
+        final viewMatrix = TransformMatrix.createViewMatrix();
+        final newVector2 = viewMatrix * newVector;
+
+        final perspectiveMatrix = TransformMatrix.createPerspectiveMatrix();
+        final newVector3 = perspectiveMatrix * newVector2;
+        final newVector4 = newVector3 / newVector3.w;
+
+        final viewPort = TransformMatrix.createViewPort(
           size.width,
           size.height,
-        ) *
-        TransformMatrix.createPerspectiveMatrix() *
-        TransformMatrix.createViewMatrix() *
-        model;
+        );
+        final newVector5 = viewPort * newVector4;
 
-    final List<math.Vector4> vecResult = vectors
-        .map<math.Vector4>(
-          (math.Vector4 vector) => result * vector / vector.w,
-        )
-        .toList();
+        return newVector5;
+      } /*result * vector / vector.w*/,
+    ).toList();
 
     return vecResult;
   }

@@ -32,7 +32,8 @@ class RenderControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      children: <Widget>[ // TODO: create keyboard handling instead of sliders
+      children: <Widget>[
+        // TODO: create keyboard handling instead of sliders
         VerticalSlider(
           description: 'Scaling',
           slideHandler: _scaleHandler,
@@ -44,14 +45,14 @@ class RenderControls extends StatelessWidget {
           description: 'X translation',
           slideHandler: (double value) => _translationHandler(xValue: value),
           slideValue: _position.x,
-          min: -10,
+          min: 0,
           max: 10,
         ),
         VerticalSlider(
           description: 'Y translation',
           slideHandler: (double value) => _translationHandler(yValue: value),
           slideValue: _position.y,
-          min: -10,
+          min: 0,
           max: 10,
         ),
         VerticalSlider(
@@ -66,21 +67,21 @@ class RenderControls extends StatelessWidget {
           slideHandler: (double value) => _rotationHandler(xValue: value),
           slideValue: _rotation.x.floorToDouble(),
           min: 0,
-          max: 3.2,
+          max: 6.4,
         ),
         VerticalSlider(
           description: 'Y rotation',
           slideHandler: (double value) => _rotationHandler(yValue: value),
           slideValue: _rotation.y.floorToDouble(),
           min: 0,
-          max: 3.2,
+          max: 6.4,
         ),
         VerticalSlider(
           description: 'Z rotation',
           slideHandler: (double value) => _rotationHandler(zValue: value),
           slideValue: _rotation.z.floorToDouble(),
           min: 0,
-          max: 3.2,
+          max: 6.4,
         ),
       ],
     );

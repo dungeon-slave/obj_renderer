@@ -71,7 +71,7 @@ class ObjParser {
 
   GeometricVertexEntity _parseGeometry(String line) {
     List<String> coords = line.split(' ')..removeAt(0);
-    
+
     return GeometricVertexEntity(
       x: double.parse(coords[0]),
       y: double.parse(coords[1]),
@@ -108,7 +108,8 @@ class ObjParser {
           v: _faceRegExps[0].allMatches(vertex).isNotEmpty
               ? _vertexGeometrics[int.parse(vertexParts[0]) - 1]
               : null,
-          vt: _faceRegExps[1].allMatches(vertex).isNotEmpty
+          vt: _faceRegExps[1].allMatches(vertex).isNotEmpty &&
+                  _vertexTextures.isNotEmpty
               ? _vertexTextures[int.parse(vertexParts[1]) - 1]
               : null,
           vn: _faceRegExps[2].allMatches(vertex).isNotEmpty

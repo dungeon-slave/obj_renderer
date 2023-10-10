@@ -40,7 +40,7 @@ class _RenderScreenState extends State<RenderScreen> {
               children: <Widget>[
                 AppCustomPaint(
                   entities: _fetchVectors(
-                    Size(size.width * 0.2, size.width * 0.2),
+                    Size(size.width, size.height),
                     snapshot.data!,
                   ),
                 ),

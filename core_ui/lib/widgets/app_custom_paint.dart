@@ -22,7 +22,7 @@ class _AppCustomPaintState extends State<AppCustomPaint> {
     return Container(
       decoration: BoxDecoration(border: Border.all()),
       child: CustomPaint(
-        size: size * 0.5,
+        size: Size(size.width * 0.98, size.height * 0.6),
         painter: AppCustomPainter(
           entities: widget._entities,
         ),
