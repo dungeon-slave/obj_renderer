@@ -71,6 +71,7 @@ class ObjParser {
 
   GeometricVertexEntity _parseGeometry(String line) {
     List<String> coords = line.split(' ')..removeAt(0);
+    
     return GeometricVertexEntity(
       x: double.parse(coords[0]),
       y: double.parse(coords[1]),
