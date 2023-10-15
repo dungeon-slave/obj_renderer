@@ -1,10 +1,9 @@
-import 'dart:io';
-import '../entites/face_entity.dart';
-import '../entites/geometric_vertex_entity.dart';
-import '../entites/render_object_entity.dart';
-import '../entites/texture_vertex_entity.dart';
-import '../entites/vertex_entity.dart';
-import '../entites/vertex_normal_entity.dart';
+import '../entities/face_entity.dart';
+import '../entities/geometric_vertex_entity.dart';
+import '../entities/render_object_entity.dart';
+import '../entities/texture_vertex_entity.dart';
+import '../entities/vertex_entity.dart';
+import '../entities/vertex_normal_entity.dart';
 
 class ObjParser {
   static const List<String> _objectKeywords = <String>[
@@ -25,20 +24,9 @@ class ObjParser {
   final List<NormalVertexEntity> _vertexNormales = <NormalVertexEntity>[];
   final List<FaceEntity> _faces = <FaceEntity>[];
 
-  Future<List<RenderObjectEntity>> parseObjects(String path) async {
-    return _parseContent(await _readFile(path));
-  }
-
-  Future<List<String>> _readFile(String path) async {
-    try {
-      return await File(path).readAsLines();
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  List<RenderObjectEntity> _parseContent(List<String> content) {
+  List<RenderObjectEntity> parseContent(String rawContent) {
     final List<RenderObjectEntity> renderObjects = <RenderObjectEntity>[];
+    final List<String> content = rawContent.split('\n');
     String currObjName = "";
 
     for (int i = 0; i < content.length; i++) {
@@ -83,6 +71,7 @@ class ObjParser {
 
   GeometricVertexEntity _parseGeometry(String line) {
     List<String> coords = line.split(' ')..removeAt(0);
+
     return GeometricVertexEntity(
       x: double.parse(coords[0]),
       y: double.parse(coords[1]),
@@ -119,7 +108,8 @@ class ObjParser {
           v: _faceRegExps[0].allMatches(vertex).isNotEmpty
               ? _vertexGeometrics[int.parse(vertexParts[0]) - 1]
               : null,
-          vt: _faceRegExps[1].allMatches(vertex).isNotEmpty
+          vt: _faceRegExps[1].allMatches(vertex).isNotEmpty &&
+                  _vertexTextures.isNotEmpty
               ? _vertexTextures[int.parse(vertexParts[1]) - 1]
               : null,
           vn: _faceRegExps[2].allMatches(vertex).isNotEmpty
