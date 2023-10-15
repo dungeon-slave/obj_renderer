@@ -39,7 +39,7 @@ class RenderControls extends StatelessWidget {
           slideHandler: _scaleHandler,
           slideValue: _scale.x,
           min: 1,
-          max: 2,
+          max: 200,
         ),
         VerticalSlider(
           description: 'X translation',
@@ -52,8 +52,8 @@ class RenderControls extends StatelessWidget {
           description: 'Y translation',
           slideHandler: (double value) => _translationHandler(yValue: value),
           slideValue: _position.y,
-          min: 0,
-          max: 10,
+          min: -1000,
+          max: 1000,
         ),
         VerticalSlider(
           description: 'Z translation',

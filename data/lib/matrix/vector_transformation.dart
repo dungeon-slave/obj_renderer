@@ -53,7 +53,8 @@ abstract class VectorTransformation {
         final viewMatrix = TransformMatrix.createViewMatrix();
         final newVector2 = viewMatrix * newVector;
 
-        final perspectiveMatrix = TransformMatrix.createPerspectiveMatrix();
+        final perspectiveMatrix =
+            TransformMatrix.createPerspectiveMatrix(size.width, size.height);
         final newVector3 = perspectiveMatrix * newVector2;
         final newVector4 = newVector3 / newVector3.w;
 

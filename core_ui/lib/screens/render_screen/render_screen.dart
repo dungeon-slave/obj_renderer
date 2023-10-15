@@ -24,6 +24,7 @@ class _RenderScreenState extends State<RenderScreen> {
   Vector3 _position = Vector3(0, 0, 0);
   Vector3 _scale = Vector3(1, 1, 1);
   Vector3 _rotation = Vector3(0, 0, 0);
+  Size painterSize = Size.zero;
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +41,10 @@ class _RenderScreenState extends State<RenderScreen> {
               children: <Widget>[
                 AppCustomPaint(
                   entities: _fetchVectors(
-                    Size(size.width, size.height),
+                    painterSize,
                     snapshot.data!,
                   ),
+                  setSize: _setSize,
                 ),
                 RenderControls(
                   scaleHandler: _scaleHandler,
@@ -65,6 +67,11 @@ class _RenderScreenState extends State<RenderScreen> {
         },
       ),
     );
+  }
+
+  void _setSize(Size size) {
+    painterSize = size;
+    setState(() {});
   }
 
   Map<int, List<Vector4>> _fetchVectors(

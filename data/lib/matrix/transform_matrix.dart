@@ -30,10 +30,10 @@ abstract class TransformMatrix {
     );
   }
 
-  static Matrix4 createPerspectiveMatrix() {
+  static Matrix4 createPerspectiveMatrix(double width, double height) {
     return makePerspectiveMatrix(
       SceneSettings.fov,
-      SceneSettings.aspect,
+      SceneSettings.getAspect(width, height),
       SceneSettings.zNear,
       SceneSettings.zFar,
     );
