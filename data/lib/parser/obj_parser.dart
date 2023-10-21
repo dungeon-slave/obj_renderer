@@ -1,13 +1,11 @@
 import '../entities/face_entity.dart';
 import '../entities/geometric_vertex_entity.dart';
-import '../entities/render_object_entity.dart';
 import '../entities/texture_vertex_entity.dart';
 import '../entities/vertex_entity.dart';
 import '../entities/vertex_normal_entity.dart';
 
 class ObjParser {
   static const List<String> _objectKeywords = <String>[
-    'o ',
     'v',
     'vn',
     'vt',
@@ -22,62 +20,46 @@ class ObjParser {
       <GeometricVertexEntity>[];
   final List<TextureVertexEntity> _vertexTextures = <TextureVertexEntity>[];
   final List<NormalVertexEntity> _vertexNormales = <NormalVertexEntity>[];
-  final List<FaceEntity> _faces = <FaceEntity>[];
 
-  List<RenderObjectEntity> parseContent(String rawContent) {
-    final List<RenderObjectEntity> renderObjects = <RenderObjectEntity>[];
+  List<FaceEntity> parseContent(String rawContent) {
     final List<String> content = rawContent.split('\n');
-    String currObjName = "";
+    final List<FaceEntity> faces = <FaceEntity>[];
 
     for (int i = 0; i < content.length; i++) {
-      if (content[i].startsWith(_objectKeywords[0])) {
-        if (currObjName.isEmpty) {
-          currObjName = (content[i].split(' ')..removeAt(0))[0];
-        } else {
-          renderObjects.add(_addObject(currObjName));
-          currObjName = (content[i].split(' ')..removeAt(0))[0];
-        }
-      }
       if (content[i].startsWith(_objectKeywords[1])) {
-        _vertexGeometrics.add(_parseGeometry(content[i]));
-        continue;
-      }
-      if (content[i].startsWith(_objectKeywords[2])) {
         _vertexNormales.add(_parseNormal(content[i]));
         continue;
       }
-      if (content[i].startsWith(_objectKeywords[3])) {
+      if (content[i].startsWith(_objectKeywords[2])) {
         _vertexTextures.add(_parseTexture(content[i]));
         continue;
       }
-      if (content[i].startsWith(_objectKeywords[4])) {
-        _faces.add(_parseFace(content[i]));
+      //todo: problem is that vt and vn comes into parseGeometry, need to refactor
+      if (content[i].startsWith(_objectKeywords[0])) {
+        _vertexGeometrics.add(_parseGeometry(content[i]));
+        continue;
+      }
+      if (content[i].startsWith(_objectKeywords[3])) {
+        faces.add(_parseFace(content[i]));
         continue;
       }
     }
-    renderObjects.add(_addObject(currObjName));
-    return renderObjects;
-  }
-
-  RenderObjectEntity _addObject(String name) {
-    RenderObjectEntity result =
-        RenderObjectEntity(name: name, faces: [..._faces]);
-    _vertexGeometrics.clear();
-    _vertexTextures.clear();
-    _vertexNormales.clear();
-    _faces.clear();
-    return result;
+    return faces;
   }
 
   GeometricVertexEntity _parseGeometry(String line) {
     List<String> coords = line.split(' ')..removeAt(0);
 
-    return GeometricVertexEntity(
-      x: double.parse(coords[0]),
-      y: double.parse(coords[1]),
-      z: double.parse(coords[2]),
-      w: coords.length > 3 ? double.parse(coords[3]) : 1,
-    );
+    try {
+      return GeometricVertexEntity(
+        x: double.parse(coords[0]),
+        y: double.parse(coords[1]),
+        z: double.parse(coords[2]),
+        w: coords.length > 3 ? double.parse(coords[3]) : 1,
+      );
+    } catch (e) {
+      rethrow;
+    }
   }
 
   NormalVertexEntity _parseNormal(String line) {
@@ -101,6 +83,7 @@ class ObjParser {
   FaceEntity _parseFace(String line) {
     List<String> faceVertices = line.split(' ')..removeAt(0);
     List<VertexEntity> objectVertices = <VertexEntity>[];
+
     for (String vertex in faceVertices) {
       List<String> vertexParts = vertex.split('/');
       objectVertices.add(

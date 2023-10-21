@@ -3,7 +3,7 @@ import 'package:core_ui/widgets/app_custom_paint.dart';
 import 'package:core_ui/widgets/app_loader.dart';
 import 'package:core_ui/widgets/render_controls.dart';
 import 'package:data/data.dart' hide Colors;
-import 'package:data/entities/render_object_entity.dart';
+import 'package:data/entities/face_entity.dart';
 import 'package:data/matrix/vector_transformation.dart';
 import 'package:data/parser/obj_parser.dart';
 import 'package:flutter/material.dart';
@@ -24,24 +24,22 @@ class _RenderScreenState extends State<RenderScreen> {
   Vector3 _position = Vector3(0, 0, 0);
   Vector3 _scale = Vector3(1, 1, 1);
   Vector3 _rotation = Vector3(0, 0, 0);
-  Size painterSize = Size.zero;
+  Size _painterSize = Size.zero;
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.sizeOf(context);
-
     return Container(
       color: Colors.blue,
-      child: FutureBuilder<List<RenderObjectEntity>>(
+      child: FutureBuilder<List<FaceEntity>>(
         future: Future(() => ObjParser().parseContent(widget._rawContent)),
-        builder: (_, AsyncSnapshot<List<RenderObjectEntity>> snapshot) {
+        builder: (_, AsyncSnapshot<List<FaceEntity>> snapshot) {
           if (snapshot.hasData) {
             return Column(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
                 AppCustomPaint(
                   entities: _fetchVectors(
-                    painterSize,
+                    _painterSize,
                     snapshot.data!,
                   ),
                   setSize: _setSize,
@@ -70,30 +68,28 @@ class _RenderScreenState extends State<RenderScreen> {
   }
 
   void _setSize(Size size) {
-    painterSize = size;
+    _painterSize = size;
     setState(() {});
   }
 
   Map<int, List<Vector4>> _fetchVectors(
     Size size,
-    List<RenderObjectEntity> entities,
+    List<FaceEntity> entities,
   ) {
     final Map<int, List<Vector4>> result = <int, List<Vector4>>{};
 
-    for (RenderObjectEntity entity in entities) {
-      for (int j = 0; j < entity.faces.length; j++) {
-        result.addAll(
-          {
-            j: VectorTransformation.transform(
-              vertices: entity.faces[j].vertices,
-              translate: _position,
-              scale: _scale,
-              rotation: _rotation,
-              size: size,
-            ),
-          },
-        );
-      }
+    for (int i = 0; i < entities.length; i++) {
+      result.addAll(
+        {
+          i: VectorTransformation.transform(
+            vertices: entities[i].vertices,
+            translate: _position,
+            scale: _scale,
+            rotation: _rotation,
+            size: size,
+          ),
+        },
+      );
     }
 
     return result;
