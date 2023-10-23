@@ -1,9 +1,10 @@
-import 'package:data/data.dart' hide Colors;
+import 'package:core_ui/app_colors.dart';
+import 'package:data/data.dart';
 import 'package:flutter/material.dart';
 
 class AppCustomPainter extends CustomPainter {
   final Map<int, List<Vector4>> _entities;
-  final Paint _paint = Paint()..color = Colors.black;
+  final Paint _paint = Paint()..color = AppColors.vertexColor;
 
   AppCustomPainter({
     required Map<int, List<Vector4>> entities,
@@ -11,11 +12,13 @@ class AppCustomPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, _) {
-    for (List<Vector4> entity in _entities.values) {
-      for (int i = 0; i < entity.length - 1; i++) {
+    for (int i = 0, length = _entities.values.length; i < length; i++) {
+      List<Vector4> entity = _entities.values.elementAt(i);
+      
+      for (int j = 0, entityLen = entity.length - 1; j < entityLen; j++) {
         canvas.drawLine(
-          Offset(entity[i].x, entity[i].y),
-          Offset(entity[i + 1].x, entity[i + 1].y),
+          Offset(entity[j].x, entity[j].y),
+          Offset(entity[j + 1].x, entity[j + 1].y),
           _paint,
         );
       }

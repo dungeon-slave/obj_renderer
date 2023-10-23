@@ -1,3 +1,4 @@
+import 'package:core_ui/app_colors.dart';
 import 'package:core_ui/app_text_style.dart';
 import 'package:flutter/material.dart';
 
@@ -19,7 +20,7 @@ class AppLoader extends StatelessWidget {
         SizedBox.square(
           dimension: size.aspectRatio * size.height / 3,
           child: const CircularProgressIndicator(
-            color: Colors.black,
+            color: AppColors.elementsColor,
             strokeWidth: 30,
           ),
         ),

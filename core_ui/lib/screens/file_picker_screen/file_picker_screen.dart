@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:core_ui/app_colors.dart';
 import 'package:core_ui/app_text_style.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:data/parser/obj_parser.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -17,12 +19,12 @@ class FilePickerScreen extends StatelessWidget {
       Uint8List bytes = result.files.first.bytes == null
           ? await File(result.files.first.path!).readAsBytes()
           : result.files.first.bytes!;
-      String rawContent = utf8.decode(bytes);
 
       navigatorState.push(
         MaterialPageRoute(
           builder: (_) => RenderScreen(
-            rawContent: rawContent,
+            defaultFaces:
+                ObjParser().parseContent(utf8.decode(bytes).split('\n')),
           ),
         ),
       );
@@ -35,6 +37,9 @@ class FilePickerScreen extends StatelessWidget {
 
     return SizedBox(
       child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.backGroundColor,
+        ),
         onPressed: () => _tapHandler(navigatorState),
         child: const Text(
           'Tap to select .obj file',
