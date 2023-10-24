@@ -1,3 +1,4 @@
+import 'package:core_ui/app_colors.dart';
 import 'package:core_ui/app_text_style.dart';
 import 'package:flutter/material.dart';
 
@@ -28,12 +29,12 @@ class VerticalSlider extends StatelessWidget {
           RotatedBox(
             quarterTurns: 3,
             child: Material(
-              color: Colors.blue,
+              color: AppColors.backGroundColor,
               child: Slider(
-                secondaryActiveColor: Colors.black,
-                inactiveColor: Colors.black,
-                activeColor: Colors.black,
-                thumbColor: Colors.black,
+                secondaryActiveColor: AppColors.elementsColor,
+                inactiveColor: AppColors.elementsColor,
+                activeColor: AppColors.elementsColor,
+                thumbColor: AppColors.elementsColor,
                 min: _min,
                 max: _max,
                 value: _slideValue,

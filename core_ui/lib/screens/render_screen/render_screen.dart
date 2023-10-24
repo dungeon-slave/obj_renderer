@@ -1,20 +1,19 @@
+import 'package:core_ui/app_colors.dart';
 import 'package:core_ui/widgets/app_button.dart';
 import 'package:core_ui/widgets/app_custom_paint.dart';
-import 'package:core_ui/widgets/app_loader.dart';
 import 'package:core_ui/widgets/render_controls.dart';
-import 'package:data/data.dart' hide Colors;
-import 'package:data/entities/render_object_entity.dart';
+import 'package:data/data.dart';
+import 'package:data/entities/face_entity.dart';
 import 'package:data/matrix/vector_transformation.dart';
-import 'package:data/parser/obj_parser.dart';
 import 'package:flutter/material.dart';
 
 class RenderScreen extends StatefulWidget {
-  final String _rawContent;
+  final List<FaceEntity> _defaultFaces;
 
   const RenderScreen({
-    required String rawContent,
+    required List<FaceEntity> defaultFaces,
     super.key,
-  }) : _rawContent = rawContent;
+  }) : _defaultFaces = defaultFaces;
 
   @override
   _RenderScreenState createState() => _RenderScreenState();
@@ -24,76 +23,62 @@ class _RenderScreenState extends State<RenderScreen> {
   Vector3 _position = Vector3(0, 0, 0);
   Vector3 _scale = Vector3(1, 1, 1);
   Vector3 _rotation = Vector3(0, 0, 0);
-  Size painterSize = Size.zero;
+  Size _painterSize = Size.zero;
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.sizeOf(context);
-
     return Container(
-      color: Colors.blue,
-      child: FutureBuilder<List<RenderObjectEntity>>(
-        future: Future(() => ObjParser().parseContent(widget._rawContent)),
-        builder: (_, AsyncSnapshot<List<RenderObjectEntity>> snapshot) {
-          if (snapshot.hasData) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                AppCustomPaint(
-                  entities: _fetchVectors(
-                    painterSize,
-                    snapshot.data!,
-                  ),
-                  setSize: _setSize,
-                ),
-                RenderControls(
-                  scaleHandler: _scaleHandler,
-                  translationHandler: _translationHandler,
-                  rotationHandler: _rotationHandler,
-                  scale: _scale,
-                  position: _position,
-                  rotation: _rotation,
-                ),
-                AppButton(
-                  text: 'Back to picking',
-                  handler: Navigator.of(context).pop,
-                ),
-              ],
-            );
-          }
-          return const AppLoader(
-            text: 'Your file is parsing',
-          );
-        },
+      color: AppColors.backGroundColor,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          AppCustomPaint(
+            entities: _fetchVectors(
+              _painterSize,
+              widget._defaultFaces,
+            ),
+            setSize: _setSize,
+          ),
+          RenderControls(
+            scaleHandler: _scaleHandler,
+            translationHandler: _translationHandler,
+            rotationHandler: _rotationHandler,
+            scale: _scale,
+            position: _position,
+            rotation: _rotation,
+          ),
+          AppButton(
+            text: 'Back to picking',
+            handler: Navigator.of(context).pop,
+          ),
+        ],
       ),
     );
   }
 
   void _setSize(Size size) {
-    painterSize = size;
+    _painterSize = size;
     setState(() {});
   }
 
   Map<int, List<Vector4>> _fetchVectors(
     Size size,
-    List<RenderObjectEntity> entities,
+    List<FaceEntity> entities,
   ) {
     final Map<int, List<Vector4>> result = <int, List<Vector4>>{};
 
-    for (RenderObjectEntity entity in entities) {
-      for (int j = 0; j < entity.faces.length; j++) {
-        result.addAll(
-          {
-            j: VectorTransformation.transform(
-              vertices: entity.faces[j].vertices,
-              translate: _position,
-              scale: _scale,
-              rotation: _rotation,
-              size: size,
-            ),
-          },
-        );
-      }
+    for (int i = 0, length = entities.length; i < length; i++) {
+      result.addAll(
+        {
+          i: VectorTransformation.transform(
+            vertices: entities[i].vertices,
+            translate: _position,
+            scale: _scale,
+            rotation: _rotation,
+            size: size,
+          ),
+        },
+      );
     }
 
     return result;
