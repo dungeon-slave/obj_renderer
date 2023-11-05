@@ -1,3 +1,5 @@
+import '../data.dart';
+
 class GeometricVertexEntity {
   final double x;
   final double y;
@@ -10,4 +12,8 @@ class GeometricVertexEntity {
     required this.z,
     required this.w,
   });
+
+  Vector4 toVector4() {
+    return Vector4(x, y, z, w);
+  }
 }

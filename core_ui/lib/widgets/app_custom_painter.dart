@@ -13,14 +13,58 @@ class AppCustomPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, _) {
     for (int i = 0, length = _entities.values.length; i < length; i++) {
-      List<Vector4> entity = _entities.values.elementAt(i);
-      
-      for (int j = 0, entityLen = entity.length - 1; j < entityLen; j++) {
-        canvas.drawLine(
-          Offset(entity[j].x, entity[j].y),
-          Offset(entity[j + 1].x, entity[j + 1].y),
-          _paint,
-        );
+      List<Vector4> triangle = _entities.values.elementAt(i).sublist(0, 3);
+
+      Vector4 temp;
+      if (triangle[0].y > triangle[1].y) {
+        temp = triangle[0];
+        triangle[0] = triangle[1];
+        triangle[1] = temp;
+      }
+      if (triangle[0].y > triangle[2].y) {
+        temp = triangle[0];
+        triangle[0] = triangle[2];
+        triangle[2] = temp;
+      }
+      if (triangle[1].y > triangle[2].y) {
+        temp = triangle[1];
+        triangle[1] = triangle[2];
+        triangle[2] = temp;
+      }
+
+      Vector4 coefficient1 =
+          (triangle[1] - triangle[0]) / (triangle[1].y - triangle[0].y);
+      Vector4 coefficient2 =
+          (triangle[2] - triangle[0]) / (triangle[2].y - triangle[0].y);
+      Vector4 coefficient3 =
+          (triangle[2] - triangle[1]) / (triangle[2].y - triangle[1].y);
+
+      for (int minY = triangle[0].y.ceil(),
+              y = minY,
+              maxY = triangle[2].y.ceil();
+          y <= maxY;
+          y++) {
+        Vector4 a = y > triangle[1].y
+            ? triangle[1] + coefficient3 * (y - triangle[1].y)
+            : triangle[0] + coefficient1 * (y - triangle[0].y);
+        Vector4 b = triangle[0] + coefficient2 * (y - triangle[0].y);
+        double yd = y.toDouble();
+        double xD;
+
+        if (a.x > b.x) {
+          (a, b) = (b, a);
+        }
+
+        for (int minX = a.x.ceil(), x = minX, maxX = b.x.ceil();
+            x < maxX;
+            x++) {
+          xD = x.toDouble();
+          canvas.drawLine(
+            Offset(xD, yd),
+            Offset(xD + 0.1, yd + 0.1),
+            _paint,
+          );
+        }
       }
     }
   }
