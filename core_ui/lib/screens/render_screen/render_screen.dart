@@ -60,7 +60,7 @@ class _RenderScreenState extends State<RenderScreen>
 
   void _createTicker(LogicalKeyboardKey key) {
     _currTicker = createTicker(
-      (Duration elapsed) {
+      (_) {
         KeyboardService.keyHandler(key, widget._objectParameters);
         setState(() {});
       },
