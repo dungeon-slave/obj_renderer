@@ -8,7 +8,7 @@ class AppCustomPaint extends StatefulWidget {
   const AppCustomPaint({
     required Map<int, List<Vector4>> entities,
     super.key,
-  })  : _entities = entities;
+  }) : _entities = entities;
 
   @override
   _AppCustomPaintState createState() => _AppCustomPaintState();
@@ -25,6 +25,7 @@ class _AppCustomPaintState extends State<AppCustomPaint> {
         size: size,
         painter: AppCustomPainter(
           entities: widget._entities,
+          screenSize: size,
         ),
       ),
     );
