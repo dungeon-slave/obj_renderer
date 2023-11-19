@@ -4,14 +4,11 @@ import 'package:core_ui/app_colors.dart';
 import 'package:data/data.dart';
 import 'package:flutter/material.dart';
 
-import '../scene_settings.dart';
-
 class AppCustomPainter extends CustomPainter {
   final Map<int, List<Vector4>> _entities;
-  final Paint _paint = Paint()
-    ..color = AppColors.vertexColor
-    ..style = PaintingStyle.fill;
+  final Paint _paint = Paint()..color = AppColors.vertexColor;
   final Size _screenSize;
+  final double _dotSize = 0.25;
 
   AppCustomPainter({
     required Map<int, List<Vector4>> entities,
@@ -32,9 +29,10 @@ class AppCustomPainter extends CustomPainter {
 
       Vector4 edge1 = triangle[1] - triangle[0];
       Vector4 edge2 = triangle[2] - triangle[0];
-      // if (edge1.x * edge2.y - edge1.y * edge2.x < 0) {
-      //   continue;
-      // }
+
+      if (edge1.x * edge2.y - edge1.y * edge2.x <= 0) {
+        continue;
+      }
 
       Vector3 normal = Vector3(
         edge1.y * edge2.z - edge1.z * edge2.y,
@@ -42,9 +40,23 @@ class AppCustomPainter extends CustomPainter {
         edge1.x * edge2.y - edge1.y * edge2.x,
       ).normalized();
 
-      if (normal.dot(SceneSettings.eye) < 0) {
-        continue;
+      Vector3 lightDirection = Vector3(0, 0, -1);
+      double intensity = normal.dot(lightDirection * -1);
+      normal = normal * -1;
+      if (intensity - 1 > 0) {
+        intensity = 1;
+      } else {
+        intensity = max(intensity, 0);
+        //intensity = 0;
       }
+      Color color = Color.fromARGB(
+        255,
+        (AppColors.vertexColor.red * intensity).toInt(),
+        (AppColors.vertexColor.green * intensity).toInt(),
+        (AppColors.vertexColor.blue * intensity).toInt(),
+      );
+      //_paint.color.withOpacity(intensity);
+      _paint.color = color;
 
       Vector4 temp;
 
@@ -74,13 +86,13 @@ class AppCustomPainter extends CustomPainter {
       for (int minY = max(triangle[0].y.ceil(), 0),
               y = minY,
               maxY = min(triangle[2].y.ceil(), _screenSize.height.toInt() - 1);
-          y <= maxY;
+          y < maxY;
           y++) {
         Vector4 a = y > triangle[1].y
             ? triangle[1] + coefficient3 * (y - triangle[1].y)
             : triangle[0] + coefficient1 * (y - triangle[0].y);
         Vector4 b = triangle[0] + coefficient2 * (y - triangle[0].y);
-        double yd = y.toDouble();
+        double yD = y.toDouble();
 
         if (a.x > b.x) {
           (a, b) = (b, a);
@@ -99,12 +111,12 @@ class AppCustomPainter extends CustomPainter {
 
           int width = _screenSize.width.toInt();
           int pos = y * width + x;
-          if (zBuffer[pos] == null || zBuffer[pos]! > p.z) {
+          if (zBuffer[pos] == null || zBuffer[pos]! > p.z + 0.000001) {
             zBuffer[pos] = p.z;
             canvas.drawRect(
               Rect.fromPoints(
-                Offset(xD, yd),
-                Offset(xD + 0.5, yd + 0.5),
+                Offset(xD, yD),
+                Offset(xD + _dotSize, yD + _dotSize),
               ),
               _paint,
             );
