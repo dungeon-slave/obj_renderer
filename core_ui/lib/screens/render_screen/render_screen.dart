@@ -17,6 +17,7 @@ class RenderScreen extends StatefulWidget {
     AllowedActions.translation: Vector3(0, 0, 0),
     AllowedActions.rotation: Vector3(0, 0, 0),
   };
+  final List<Vector4> world = <Vector4>[];
 
   RenderScreen({
     required List<FaceEntity> defaultFaces,
@@ -42,6 +43,7 @@ class _RenderScreenState extends State<RenderScreen>
           size,
           widget._defaultFaces,
         ),
+        world: widget.world,
       ),
     );
   }
@@ -94,17 +96,21 @@ class _RenderScreenState extends State<RenderScreen>
     final Map<int, List<Vector4>> result = <int, List<Vector4>>{};
 
     for (int i = 0, length = entities.length; i < length; i++) {
+      final (List<Vector4>, List<Vector4>) result1 =
+          VectorTransformation.transform(
+        vertices: entities[i].vertices,
+        translate: widget._objectParameters[AllowedActions.translation]!,
+        scale: widget._objectParameters[AllowedActions.scaling]!,
+        rotation: widget._objectParameters[AllowedActions.rotation]!,
+        size: size,
+      );
+
       result.addAll(
         {
-          i: VectorTransformation.transform(
-            vertices: entities[i].vertices,
-            translate: widget._objectParameters[AllowedActions.translation]!,
-            scale: widget._objectParameters[AllowedActions.scaling]!,
-            rotation: widget._objectParameters[AllowedActions.rotation]!,
-            size: size,
-          ),
+          i: result1.$1,
         },
       );
+      widget.world.addAll(result1.$2);
     }
 
     return result;

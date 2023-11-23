@@ -6,15 +6,18 @@ import 'package:flutter/material.dart';
 
 class AppCustomPainter extends CustomPainter {
   final Map<int, List<Vector4>> _entities;
-  final Paint _paint = Paint()..color = AppColors.vertexColor;
+  final List<Vector4> _world;
+  final Paint _paint = Paint() /*..color = AppColors.vertexColor*/;
   final Size _screenSize;
-  final double _dotSize = 0.25;
+  final double _dotSize = 1;
 
   AppCustomPainter({
     required Map<int, List<Vector4>> entities,
+    required List<Vector4> world,
     required Size screenSize,
   })  : _entities = entities,
-        _screenSize = screenSize;
+        _screenSize = screenSize,
+        _world = world;
 
   @override
   void paint(Canvas canvas, _) {
@@ -24,15 +27,23 @@ class AppCustomPainter extends CustomPainter {
       growable: false,
     );
 
-    for (int i = 0, length = _entities.values.length; i < length; i++) {
-      List<Vector4> triangle = _entities.values.elementAt(i).sublist(0, 3);
+    for (int i = 0, length = _entities.values.length; i < length - 3; i++) {
+      final List<Vector4> triangle =
+          _entities.values.elementAt(i) /*.sublist(0, 3)*/;
+      int pos = i * 3;
+      final List<Vector4> triangleWorld = _world.sublist(pos, pos + 3);
+
+      Vector4 edge1World = triangleWorld[1] - triangleWorld[0];
+      Vector4 edge2World = triangleWorld[2] - triangleWorld[0];
 
       Vector4 edge1 = triangle[1] - triangle[0];
       Vector4 edge2 = triangle[2] - triangle[0];
 
-      if (edge1.x * edge2.y - edge1.y * edge2.x <= 0) {
-        continue;
-      }
+      Vector3 normalWorld = Vector3(
+        edge1World.y * edge2World.z - edge1World.z * edge2World.y,
+        edge1World.z * edge2World.x - edge1World.x * edge2World.z,
+        edge1World.x * edge2World.y - edge1World.y * edge2World.x,
+      ).normalized();
 
       Vector3 normal = Vector3(
         edge1.y * edge2.z - edge1.z * edge2.y,
@@ -40,23 +51,20 @@ class AppCustomPainter extends CustomPainter {
         edge1.x * edge2.y - edge1.y * edge2.x,
       ).normalized();
 
-      Vector3 lightDirection = Vector3(0, 0, -1);
-      double intensity = normal.dot(lightDirection * -1);
-      normal = normal * -1;
-      if (intensity - 1 > 0) {
-        intensity = 1;
-      } else {
-        intensity = max(intensity, 0);
-        //intensity = 0;
+      //Vector3 newTriangle = Vector3(triangle[0].x, triangle[0].y, triangle[0].z);
+      if (normal.z >= 0) {
+        continue;
       }
-      Color color = Color.fromARGB(
+
+      Vector3 lightDirection = Vector3(-1, -1, -1).normalized();
+      double intensity = max(normalWorld.dot(-lightDirection), 0);
+
+      _paint.color = Color.fromARGB(
         255,
         (AppColors.vertexColor.red * intensity).toInt(),
         (AppColors.vertexColor.green * intensity).toInt(),
         (AppColors.vertexColor.blue * intensity).toInt(),
       );
-      //_paint.color.withOpacity(intensity);
-      _paint.color = color;
 
       Vector4 temp;
 
@@ -98,7 +106,7 @@ class AppCustomPainter extends CustomPainter {
           (a, b) = (b, a);
         }
 
-        Vector4 koeff_ab = (b - a) / (b.x - a.x);
+        Vector4 coeff_ab = (b - a) / (b.x - a.x);
         for (int minX = max(a.x.ceil(), 0),
                 x = minX,
                 maxX = min(b.x.ceil(), _screenSize.width.toInt() - 1);
@@ -106,12 +114,12 @@ class AppCustomPainter extends CustomPainter {
             x++) {
           double xD = x.toDouble();
 
-          Vector4 p = a + koeff_ab * (xD - a.x);
+          Vector4 p = a + coeff_ab * (xD - a.x);
           p = p.normalized();
 
           int width = _screenSize.width.toInt();
           int pos = y * width + x;
-          if (zBuffer[pos] == null || zBuffer[pos]! > p.z + 0.000001) {
+          if (zBuffer[pos] == null || zBuffer[pos]! > p.z) {
             zBuffer[pos] = p.z;
             canvas.drawRect(
               Rect.fromPoints(

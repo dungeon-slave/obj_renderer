@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math.dart' as math;
 
 abstract class VectorTransformation {
-  static List<math.Vector4> transform({
+  static (List<math.Vector4> viewPort, List<math.Vector4> world)  transform({
     required List<VertexEntity> vertices,
     required math.Vector3 translate,
     required math.Vector3 scale,
@@ -47,9 +47,11 @@ abstract class VectorTransformation {
     //newVector2 / newVector2.w
     //viewPort * newVector3
 
+    final List<math.Vector4> world = <math.Vector4>[];
     final List<math.Vector4> vecResult = vectors.map<math.Vector4>(
       (math.Vector4 vector) {
         final newVector = model * vector;
+        world.add(newVector);
         final viewMatrix = TransformMatrix.createViewMatrix();
         final newVector2 = viewMatrix * newVector;
 
@@ -68,6 +70,6 @@ abstract class VectorTransformation {
       } /*result * vector / vector.w*/,
     ).toList();
 
-    return vecResult;
+    return (vecResult, world);
   }
 }
