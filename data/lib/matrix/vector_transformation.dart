@@ -4,7 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:vector_math/vector_math.dart' as math;
 
 abstract class VectorTransformation {
-  static (List<math.Vector4> viewPort, List<math.Vector4> world)  transform({
+  static (
+    List<math.Vector4> viewPort,
+    List<math.Vector4> world,
+    List<math.Vector3> normals
+  ) transform({
     required List<VertexEntity> vertices,
     required math.Vector3 translate,
     required math.Vector3 scale,
@@ -12,19 +16,29 @@ abstract class VectorTransformation {
     required Size size,
   }) {
     final List<math.Vector4> vectors = <math.Vector4>[];
+    final List<math.Vector3> normals = <math.Vector3>[];
 
     for (VertexEntity vertex in vertices) {
-      if (vertex.v == null) {
-        continue;
+      if (vertex.v != null) {
+        vectors.add(
+          math.Vector4(
+            vertex.v!.x,
+            vertex.v!.y,
+            vertex.v!.z,
+            vertex.v!.w,
+          ),
+        );
       }
-      vectors.add(
-        math.Vector4(
-          vertex.v!.x,
-          vertex.v!.y,
-          vertex.v!.z,
-          vertex.v!.w,
-        ),
-      );
+
+      if (vertex.vn != null) {
+        normals.add(
+          math.Vector3(
+            vertex.vn!.i,
+            vertex.vn!.j,
+            vertex.vn!.k,
+          ),
+        );
+      }
     }
 
     final math.Matrix4 model = TransformMatrix.translateMatrix(translate) *
@@ -70,6 +84,13 @@ abstract class VectorTransformation {
       } /*result * vector / vector.w*/,
     ).toList();
 
-    return (vecResult, world);
+    final List<math.Vector3> normalsResult = normals.map<math.Vector3>(
+      (math.Vector3 normal) {
+        final newVector = model * normal;
+        return newVector;
+      },
+    ).toList();
+
+    return (vecResult, world, normalsResult);
   }
 }

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 class AppCustomPainter extends CustomPainter {
   final Map<int, List<Vector4>> _entities;
   final List<Vector4> _world;
+  final List<Vector3> _normals;
   final Paint _paint = Paint() /*..color = AppColors.vertexColor*/;
   final Size _screenSize;
   final double _dotSize = 1;
@@ -19,17 +20,19 @@ class AppCustomPainter extends CustomPainter {
   Vector3 diffuseColor = Vector3 ( 87, 171, 105 );
   Vector3 specularColor = Vector3 ( 212, 21, 21 );
 
-  double ambientFactor = 1;
-  double diffuseFactor = 0.7;
-  double specularFactor = 0.2;
-  double glossFactor = 0.3;
+  double ambientFactor = 0.8;
+  double diffuseFactor = 2;
+  double specularFactor = 100;
+  double glossFactor = 50;
 
   AppCustomPainter({
     required Map<int, List<Vector4>> entities,
     required List<Vector4> world,
+    required List<Vector3> normals,
     required Size screenSize,
   })  : _entities = entities,
         _screenSize = screenSize,
+        _normals = normals,
         _world = world;
 
   @override
@@ -46,6 +49,7 @@ class AppCustomPainter extends CustomPainter {
       final List<Vector4> triangle = _entities.values.elementAt(i);
       int pos = i * 3;
       final List<Vector4> triangleWorld = _world.sublist(pos, pos + 3);
+      final List<Vector3> normals = _normals.sublist(pos, pos + 3);
 
       // Формирование треугольников в экранных и мировых координатах
       Vector4 edge1World = triangleWorld[1] - triangleWorld[0];
@@ -71,6 +75,19 @@ class AppCustomPainter extends CustomPainter {
       if (normal.z >= 0) {
         continue;
       }
+
+      triangleWorld[0] *= triangle[0].w;
+      triangleWorld[1] *= triangle[1].w;
+      triangleWorld[2] *= triangle[2].w;
+
+      // Поиск нормали по вершинам.
+      Vector3 vertexNormal0 = normals[0].normalized() * triangle[0].w;
+      Vector3 vertexNormal1 = normals[1].normalized() * triangle[1].w;
+      Vector3 vertexNormal2 = normals[2].normalized() * triangle[2].w;
+
+      // triangleWorld[0] *= triangle[0].w;
+      // triangleWorld[1] *= triangle[1].w;
+      // triangleWorld[2] *= triangle[2].w;
 
       // Инетнсивность света для 2ой лабы
       // Vector3 lightDirection = Vector3(-1, -1, -1).normalized();
@@ -104,6 +121,8 @@ class AppCustomPainter extends CustomPainter {
         temp = triangleWorld[0];
         triangleWorld[0] = triangleWorld[1];
         triangleWorld[1] = temp;
+
+        (vertexNormal0, vertexNormal1) = (vertexNormal1, vertexNormal0);
       }
       if (triangle[0].y > triangle[2].y) {
         temp = triangle[0];
@@ -113,6 +132,8 @@ class AppCustomPainter extends CustomPainter {
         temp = triangleWorld[0];
         triangleWorld[0] = triangleWorld[2];
         triangleWorld[2] = temp;
+
+        (vertexNormal0, vertexNormal2) = (vertexNormal2, vertexNormal0);
       }
       if (triangle[1].y > triangle[2].y) {
         temp = triangle[1];
@@ -122,15 +143,18 @@ class AppCustomPainter extends CustomPainter {
         temp = triangleWorld[1];
         triangleWorld[1] = triangleWorld[2];
         triangleWorld[2] = temp;
-      }
 
-      // Поиск нормали по вершинам треугольника
-      Vector3 vertexNormal0 = vertexNormals[
-          Vector3(triangleWorld[0].x, triangleWorld[0].y, triangleWorld[0].z)]!.normalized();
-      Vector3 vertexNormal1 = vertexNormals[
-          Vector3(triangleWorld[1].x, triangleWorld[1].y, triangleWorld[1].z)]!.normalized();
-      Vector3 vertexNormal2 = vertexNormals[
-          Vector3(triangleWorld[2].x, triangleWorld[2].y, triangleWorld[2].z)]!.normalized();
+        (vertexNormal1, vertexNormal2) = (vertexNormal2, vertexNormal1);
+      }
+      //
+      // // Поиск нормали по вершинам треугольника
+      // Vector3 vertexNormal0 = vertexNormals[
+      //     Vector3(triangleWorld[0].x, triangleWorld[0].y, triangleWorld[0].z)]!.normalized();
+      // Vector3 vertexNormal1 = vertexNormals[
+      //     Vector3(triangleWorld[1].x, triangleWorld[1].y, triangleWorld[1].z)]!.normalized();
+      // Vector3 vertexNormal2 = vertexNormals[
+      //     Vector3(triangleWorld[2].x, triangleWorld[2].y, triangleWorld[2].z)]!.normalized();
+
 
       // Нахождение коэффицентов в экранных и мировых координатах и коэффицента для нормалей.
       Vector4 coefficient1 =
@@ -209,8 +233,8 @@ class AppCustomPainter extends CustomPainter {
 
             Vector3 pWorld3 = Vector3(pWorld.x, pWorld.y, pWorld.z);
             Vector3 lightDirection =
-                (Vector3(-1, -1, -1) - pWorld3).normalized();
-            Vector3 viewDirection = (pWorld3 - SceneSettings.eye).normalized();
+                (Vector3(100, -1, 100) - pWorld3).normalized();
+            Vector3 viewDirection = (SceneSettings.eye - pWorld3).normalized();
 
             Vector3 n = normalA + coeff_normal_ab * (xD - a.x);
             n = n.normalized();
@@ -222,7 +246,8 @@ class AppCustomPainter extends CustomPainter {
             double attenuation = 1 / max(distance, 15);
 
             List<int> ambientValues = ambientLightning();
-            List<int> diffuseValues = diffuseLightning(intensity * attenuation);
+            List<int> diffuseValues = diffuseLightning(intensity  * attenuation);
+
             List<int> specularValues = specularLightning(
               viewDirection,
               lightDirection,
@@ -259,9 +284,9 @@ class AppCustomPainter extends CustomPainter {
     //   values[i] = (ambientColor[i] * ambientFactor).toInt();
     // }
 
-    values[0] = (ambientColor.x * ambientFactor).toInt();
-    values[1] = (ambientColor.y * ambientFactor).toInt();
-    values[2] = (ambientColor.z * ambientFactor).toInt();
+    values[0] = (AppColors.lightColor.red * ambientFactor).toInt();
+    values[1] = (AppColors.lightColor.green * ambientFactor).toInt();
+    values[2] = (AppColors.lightColor.blue * ambientFactor).toInt();
 
     return values;
   }
@@ -273,9 +298,15 @@ class AppCustomPainter extends CustomPainter {
     //   values[i] = (diffuseColor[i] * diffuseFactor * intensity).toInt();
     // }
 
-    values[0] = (diffuseColor.x * diffuseFactor * intensity).toInt();
-    values[1] = (diffuseColor.y * diffuseFactor * intensity).toInt();
-    values[2] = (diffuseColor.z * diffuseFactor * intensity).toInt();
+    // values[0] = (diffuseColor.x * diffuseFactor * intensity).toInt();
+    // values[1] = (diffuseColor.y * diffuseFactor * intensity).toInt();
+    // values[2] = (diffuseColor.z * diffuseFactor * intensity).toInt();
+
+    double scalar = intensity * diffuseFactor;
+
+    values[0] = (AppColors.lightColor.red * scalar).toInt();
+    values[1] = (AppColors.lightColor.green * scalar).toInt();
+    values[2] = (AppColors.lightColor.blue * scalar).toInt();
 
     return values;
   }
@@ -287,14 +318,14 @@ class AppCustomPainter extends CustomPainter {
   ) {
     List<int> values = List.generate(3, (index) => 0, growable: false);
 
-    Vector3 reflection = lightDirection.reflected(normal).normalized();
-    double RV = max(reflection.dot(-view), 0);
+    Vector3 reflection = (-lightDirection).reflected(normal).normalized();
+    double RV = max(reflection.dot(view), 0);
 
     num temp = pow(RV as num, glossFactor as num);
 
-    values[0] = (specularFactor * specularColor.x * temp).toInt();
-    values[1] = (specularFactor * specularColor.y * temp).toInt();
-    values[2] = (specularFactor * specularColor.z * temp).toInt();
+    values[0] = (specularFactor * temp).toInt();
+    values[1] = (specularFactor * temp).toInt();
+    values[2] = (specularFactor * temp).toInt();
 
 
 

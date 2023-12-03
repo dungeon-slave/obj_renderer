@@ -20,6 +20,12 @@ class ObjParser {
 
     for (int i = 0, length = content.length; i < length; i++) {
       List<String> stringParts = content[i].split(' ');
+      stringParts.removeWhere((element) => element == "");
+
+      if(stringParts.isEmpty) {
+        continue;
+      }
+
       String startPart = stringParts[0];
 
       switch (startPart) {
