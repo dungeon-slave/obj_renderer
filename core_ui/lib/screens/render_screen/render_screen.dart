@@ -1,6 +1,10 @@
+import 'dart:ui' as ui;
+
 import 'package:core_ui/app_colors.dart';
 import 'package:core_ui/enums/allowed_actions.dart';
+import 'package:core_ui/image_builder/image_builder.dart';
 import 'package:core_ui/widgets/app_custom_paint.dart';
+import 'package:core_ui/widgets/app_loader.dart';
 import 'package:core_ui/widgets/keyboard_service.dart';
 import 'package:data/data.dart';
 import 'package:data/entities/face_entity.dart';
@@ -31,20 +35,56 @@ class RenderScreen extends StatefulWidget {
 class _RenderScreenState extends State<RenderScreen>
     with TickerProviderStateMixin {
   late Ticker _currTicker;
+  bool isTickerBusy = false;
+
+  // @override
+  // Widget build(BuildContext context) {
+  //   Size size = MediaQuery.sizeOf(context);
+  //
+  //   return Container(
+  //     color: AppColors.backGroundColor,
+  //     child: AppCustomPaint(
+  //       entities: _fetchVectors(
+  //         size,
+  //         widget._defaultFaces,
+  //       ),
+  //       world: widget.world,
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.sizeOf(context);
 
-    return Container(
-      color: AppColors.backGroundColor,
-      child: AppCustomPaint(
-        entities: _fetchVectors(
-          size,
-          widget._defaultFaces,
-        ),
-        world: widget.world,
+    return FutureBuilder(
+      future: Future(
+        () {
+          Map<int, List<Vector4>> vectors = _fetchVectors(
+            size,
+            widget._defaultFaces,
+          );
+
+          return ImageBuilder.build(
+            size,
+            vectors,
+            widget.world,
+          );
+        },
       ),
+      builder: (_, AsyncSnapshot<ui.Image> snapshot) {
+        if (snapshot.hasData) {
+          return Container(
+            color: AppColors.backGroundColor,
+            child: AppCustomPaint(
+              image: snapshot.data!,
+            ),
+          );
+        }
+        return const AppLoader(
+          text: 'Image building',
+        );
+      },
     );
   }
 
@@ -61,6 +101,7 @@ class _RenderScreenState extends State<RenderScreen>
   }
 
   void _createTicker(LogicalKeyboardKey key) {
+    isTickerBusy = true;
     _currTicker = createTicker(
       (_) {
         KeyboardService.keyHandler(key, widget._objectParameters);
@@ -72,17 +113,18 @@ class _RenderScreenState extends State<RenderScreen>
   void _disposeTicker() {
     _currTicker.stop();
     _currTicker.dispose();
+    isTickerBusy = false;
   }
 
   bool _onKey(KeyEvent event) {
-    if (event is KeyDownEvent) {
+    if (event is KeyDownEvent && !isTickerBusy) {
       if (event.logicalKey == LogicalKeyboardKey.escape) {
         Navigator.of(context).pop();
         return true;
       }
       _createTicker(event.logicalKey);
     }
-    if (event is KeyUpEvent) {
+    if (event is KeyUpEvent && isTickerBusy) {
       _disposeTicker();
     }
 

@@ -1,3 +1,4 @@
+/*
 import 'dart:math';
 
 import 'package:core_ui/app_colors.dart';
@@ -7,7 +8,7 @@ import 'package:flutter/material.dart';
 class AppCustomPainter extends CustomPainter {
   final Map<int, List<Vector4>> _entities;
   final List<Vector4> _world;
-  final Paint _paint = Paint() /*..color = AppColors.vertexColor*/;
+  final Paint _paint = Paint();
   final Size _screenSize;
   final double _dotSize = 1;
 
@@ -132,6 +133,27 @@ class AppCustomPainter extends CustomPainter {
         }
       }
     }
+  }
+*/
+
+import 'dart:ui';
+import 'package:flutter/rendering.dart';
+
+class AppCustomPainter extends CustomPainter {
+  final Image _image;
+  final Paint _paint = Paint();
+
+  AppCustomPainter({
+    required Image image,
+  }) : _image = image;
+
+  @override
+  void paint(Canvas canvas, _) {
+    canvas.drawImage(
+      _image,
+      Offset(0, 0),
+      _paint,
+    );
   }
 
   @override

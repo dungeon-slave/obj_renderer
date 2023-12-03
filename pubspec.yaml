@@ -13,11 +13,12 @@ dependencies:
     path: ./data
   core_ui:
     path: ./core_ui
+  bitmap: ^0.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.3
+  flutter_lints: ^3.0.1
 
 flutter:
   uses-material-design: true
