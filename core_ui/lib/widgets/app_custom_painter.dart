@@ -222,7 +222,7 @@ class AppCustomPainter extends CustomPainter {
         // Нахождение коэффицентов изменения X в экранных и мировых координатах, коэффицента изменения нормали.
         Vector4 coeff_ab = (b - a) / (b.x - a.x);
         Vector4 coeff_world_ab = (worldB - worldA) / (b.x - a.x);
-        Vector3 coeff_normal_ab = (normalB - normalB) / (b.x - a.x);
+        Vector3 coeff_normal_ab = (normalB - normalA) / (b.x - a.x);
 
         for (int minX = max(a.x.ceil(), 0),
                 x = minX,
