@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:data/data.dart';
 
 abstract class SceneSettings {
-  static final Vector3 eye = Vector3(0, 0, 30);
+  static final Vector3 eye = Vector3(0, 0, 500);
   static final Vector3 target = Vector3(0, 0, 0);
   static final Vector3 up = Vector3(0, 1, 0);
 
