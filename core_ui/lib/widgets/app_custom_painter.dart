@@ -9,19 +9,16 @@ class AppCustomPainter extends CustomPainter {
   final Map<int, List<Vector4>> _entities;
   final List<Vector4> _world;
   final List<Vector3> _normals;
-  final Paint _paint = Paint() /*..color = AppColors.vertexColor*/;
+  final Paint _paint = Paint();
   final Size _screenSize;
   final double _dotSize = 1;
+  final Vector3 _lightDirection;
 
   Map<Vector3, List<Vector3>> triangleNormals = <Vector3, List<Vector3>>{};
   Map<Vector3, Vector3> vertexNormals = <Vector3, Vector3>{};
 
-  Vector3 ambientColor = Vector3(9, 56, 97);
-  Vector3 diffuseColor = Vector3(87, 171, 105);
-  Vector3 specularColor = Vector3(212, 21, 21);
-
-  double ambientFactor = 0.5;
-  double diffuseFactor = 2;
+  double ambientFactor = 0.1;
+  double diffuseFactor = 30;
   double specularFactor = 100;
   double glossFactor = 50;
 
@@ -30,9 +27,11 @@ class AppCustomPainter extends CustomPainter {
     required List<Vector4> world,
     required List<Vector3> normals,
     required Size screenSize,
+    required Vector3 lightDirection,
   })  : _entities = entities,
         _screenSize = screenSize,
         _normals = normals,
+        _lightDirection = lightDirection,
         _world = world;
 
   @override
@@ -239,18 +238,16 @@ class AppCustomPainter extends CustomPainter {
           if (zBuffer[pos] == null || zBuffer[pos]! > p.z) {
             zBuffer[pos] = p.z;
 
-            Vector3 pWorld3 = Vector3(pWorld.x, pWorld.y, pWorld.z);
-            Vector3 lightDirection =
-                (SceneSettings.eye - pWorld3).normalized();
-            Vector3 viewDirection = (SceneSettings.eye - pWorld3).normalized();
+            final Vector3 pWorld3 = Vector3(pWorld.x, pWorld.y, pWorld.z);
+            //final Vector3 lightDirection = Vector3(10, 0, -10).normalized();
+            final Vector3 viewDirection = (SceneSettings.eye - pWorld3).normalized();
 
-            Vector3 n = normalA + coeff_normal_ab * (xD - a.x);
-            n = n.normalized();
+            final Vector3 n = (normalA + coeff_normal_ab * (xD - a.x)).normalized();
 
-            double intensity = max(n.dot(-lightDirection), 0);
+            final double intensity = max(n.dot(-_lightDirection), 0);
 
             // Затенение объекта в зависимости от дистанции света до модели.
-            final double distance = lightDirection.length2;
+            final double distance = _lightDirection.length2;
             final double attenuation = 1 / max(distance, 15);
 
             final List<int> ambientValues = ambientLightning();
@@ -258,18 +255,33 @@ class AppCustomPainter extends CustomPainter {
                 diffuseLightning(intensity * attenuation);
             final List<int> specularValues = specularLightning(
               viewDirection,
-              lightDirection,
+              _lightDirection,
               n,
             );
 
             _paint.color = Color.fromARGB(
               255,
-              // n.x.toInt(),
-              // n.y.toInt(),
-              // n.z.toInt(),
-              min(ambientValues[0] + diffuseValues[0] + specularValues[0], 255),
-              min(ambientValues[1] + diffuseValues[1] + specularValues[1], 255),
-              min(ambientValues[2] + diffuseValues[2] + specularValues[2], 255),
+              min(
+                  AppColors.objectColor.red *
+                      (ambientValues[0] +
+                          diffuseValues[0] +
+                          specularValues[0]) ~/
+                      255,
+                  255),
+              min(
+                  AppColors.objectColor.green *
+                      (ambientValues[1] +
+                          diffuseValues[1] +
+                          specularValues[1]) ~/
+                      255,
+                  255),
+              min(
+                  AppColors.objectColor.blue *
+                      (ambientValues[2] +
+                          diffuseValues[2] +
+                          specularValues[2]) ~/
+                      255,
+                  255),
             );
 
             canvas.drawRect(
@@ -329,7 +341,7 @@ class AppCustomPainter extends CustomPainter {
     Vector3 lightDirection,
     Vector3 normal,
   ) {
-    final Vector3 reflection = (-lightDirection).reflected(normal).normalized();
+    final Vector3 reflection = (lightDirection).reflected(normal).normalized();
     final double rv = max(reflection.dot(view), 0);
     final num temp = pow(rv, glossFactor);
 

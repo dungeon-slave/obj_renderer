@@ -16,7 +16,9 @@ class RenderScreen extends StatefulWidget {
     AllowedActions.scaling: Vector3(1, 1, 1),
     AllowedActions.translation: Vector3(0, 0, 0),
     AllowedActions.rotation: Vector3(0, 0, 0),
+    AllowedActions.lightDirection: Vector3(-10, 0, -10),
   };
+  final Vector3 lightDirection = Vector3(-10, 0, -10);
   final List<Vector4> world = <Vector4>[];
   final List<Vector3> normals = <Vector3>[];
 
@@ -46,6 +48,7 @@ class _RenderScreenState extends State<RenderScreen>
         ),
         world: widget.world,
         normals: widget.normals,
+        lightDirection: widget._objectParameters[AllowedActions.lightDirection]!,
       ),
     );
   }

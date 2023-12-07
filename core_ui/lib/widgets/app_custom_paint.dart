@@ -6,14 +6,17 @@ class AppCustomPaint extends StatefulWidget {
   final Map<int, List<Vector4>> _entities;
   final List<Vector4> _world;
   final List<Vector3> _normals;
+  final Vector3 _lightDirection;
 
   const AppCustomPaint({
     required Map<int, List<Vector4>> entities,
     required List<Vector4> world,
     required List<Vector3> normals,
+    required Vector3 lightDirection,
     super.key,
   })  : _entities = entities,
         _normals = normals,
+        _lightDirection = lightDirection,
         _world = world;
 
   @override
@@ -34,6 +37,7 @@ class _AppCustomPaintState extends State<AppCustomPaint> {
           screenSize: size,
           world: widget._world,
           normals: widget._normals,
+          lightDirection: widget._lightDirection,
         ),
       ),
     );

@@ -29,6 +29,14 @@ class KeyboardService {
       LogicalKeyboardKey.keyR,
       LogicalKeyboardKey.keyY,
     ],
+    AllowedActions.lightDirection: <LogicalKeyboardKey>[
+      LogicalKeyboardKey.numpad4,
+      LogicalKeyboardKey.numpad6,
+      LogicalKeyboardKey.numpad8,
+      LogicalKeyboardKey.numpad2,
+      LogicalKeyboardKey.numpad1,
+      LogicalKeyboardKey.numpad9,
+    ],
   };
 
   static void keyHandler(
@@ -59,9 +67,43 @@ class KeyboardService {
             _rotationHandler(key, objectParameters[action]!);
             break;
           }
+        case AllowedActions.lightDirection:
+          {
+            _lightDirectionHandler(key, objectParameters[action]!);
+            break;
+          }
       }
     } on StateError {
       return;
+    }
+  }
+
+  static void _lightDirectionHandler(LogicalKeyboardKey key, Vector3 vector) {
+    switch (key) {
+      case LogicalKeyboardKey.numpad4:
+        {
+          vector.x = vector.x - 3;
+        }
+      case LogicalKeyboardKey.numpad6:
+        {
+          vector.x = vector.x + 3;
+        }
+      case LogicalKeyboardKey.numpad8:
+        {
+          vector.y = vector.y - 3;
+        }
+      case LogicalKeyboardKey.numpad2:
+        {
+          vector.y = vector.y + 3;
+        }
+      case LogicalKeyboardKey.numpad1:
+        {
+          vector.z = vector.z - 3;
+        }
+      case LogicalKeyboardKey.numpad9:
+        {
+          vector.z = vector.z + 3;
+        }
     }
   }
 
