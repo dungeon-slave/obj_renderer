@@ -9,6 +9,7 @@ class AppCustomPainter extends CustomPainter {
   final Map<int, List<Vector4>> _entities;
   final List<Vector4> _world;
   final List<Vector3> _normals;
+  final List<Vector3> _textures;
   final Paint _paint = Paint();
   final Size _screenSize;
   final double _dotSize = 1;
@@ -26,11 +27,13 @@ class AppCustomPainter extends CustomPainter {
     required Map<int, List<Vector4>> entities,
     required List<Vector4> world,
     required List<Vector3> normals,
+    required List<Vector3> textures,
     required Size screenSize,
     required Vector3 lightDirection,
   })  : _entities = entities,
         _screenSize = screenSize,
         _normals = normals,
+        _textures = textures,
         _lightDirection = lightDirection,
         _world = world;
 
@@ -49,6 +52,7 @@ class AppCustomPainter extends CustomPainter {
       int pos = i * 3;
       final List<Vector4> triangleWorld = _world.sublist(pos, pos + 3);
       final List<Vector3> normals = _normals.sublist(pos, pos + 3);
+      final List<Vector3> textures = _textures.sublist(pos, pos + 3);
 
       // Формирование треугольников в экранных и мировых координатах
       // Vector4 edge1World = triangleWorld[1] - triangleWorld[0];
@@ -83,6 +87,10 @@ class AppCustomPainter extends CustomPainter {
       Vector3 vertexNormal0 = normals[0].normalized() * triangle[0].w;
       Vector3 vertexNormal1 = normals[1].normalized() * triangle[1].w;
       Vector3 vertexNormal2 = normals[2].normalized() * triangle[2].w;
+
+      Vector3 texture0 = textures[0] * triangle[0].w;
+      Vector3 texture1 = textures[1] * triangle[1].w;
+      Vector3 texture2 = textures[2] * triangle[2].w;
 
       // // Поиск нормали по вершинам треугольника
       // Vector3 vertexNormal0 = vertexNormals[
@@ -130,6 +138,7 @@ class AppCustomPainter extends CustomPainter {
         triangleWorld[1] = temp;
 
         (vertexNormal0, vertexNormal1) = (vertexNormal1, vertexNormal0);
+        (texture0, texture1) = (texture1, texture0);
       }
       if (triangle[0].y > triangle[2].y) {
         temp = triangle[0];
@@ -141,6 +150,7 @@ class AppCustomPainter extends CustomPainter {
         triangleWorld[2] = temp;
 
         (vertexNormal0, vertexNormal2) = (vertexNormal2, vertexNormal0);
+        (texture0, texture2) = (texture2, texture0);
       }
       if (triangle[1].y > triangle[2].y) {
         temp = triangle[1];
@@ -152,6 +162,7 @@ class AppCustomPainter extends CustomPainter {
         triangleWorld[2] = temp;
 
         (vertexNormal1, vertexNormal2) = (vertexNormal2, vertexNormal1);
+        (texture1, texture2) = (texture2, texture1);
       }
       //
       // // Поиск нормали по вершинам треугольника
@@ -184,6 +195,13 @@ class AppCustomPainter extends CustomPainter {
       Vector3 coefficient3Normal =
           (vertexNormal2 - vertexNormal1) / (triangle[2].y - triangle[1].y);
 
+      Vector3 coefficient1Texture =
+          (texture1 - texture0) / (triangle[1].y - triangle[0].y);
+      Vector3 coefficient2Texture =
+          (texture2 - texture0) / (triangle[2].y - triangle[0].y);
+      Vector3 coefficient3Texture =
+          (texture2 - texture1) / (triangle[2].y - triangle[1].y);
+
       for (int minY = max(triangle[0].y.ceil(), 0),
               y = minY,
               maxY = min(triangle[2].y.ceil(), _screenSize.height.toInt() - 1);
@@ -210,18 +228,26 @@ class AppCustomPainter extends CustomPainter {
             ? vertexNormal1 + coefficient3Normal * (y - triangle[1].y)
             : vertexNormal0 + coefficient1Normal * (y - triangle[0].y);
 
+        Vector3 textureA = texture0 + coefficient2Texture * (y - triangle[0].y);
+
+        Vector3 textureB = y > triangle[1].y
+            ? texture1 + coefficient3Texture * (y - triangle[1].y)
+            : texture0 + coefficient1Texture * (y - triangle[0].y);
+
         double yD = y.toDouble();
 
         if (a.x > b.x) {
           (a, b) = (b, a);
           (worldA, worldB) = (worldB, worldA);
           (normalA, normalB) = (normalB, normalA);
+          (textureA, textureB) = (textureB, textureA);
         }
 
         // Нахождение коэффицентов изменения X в экранных и мировых координатах, коэффицента изменения нормали.
         Vector4 coeff_ab = (b - a) / (b.x - a.x);
         Vector4 coeff_world_ab = (worldB - worldA) / (b.x - a.x);
         Vector3 coeff_normal_ab = (normalB - normalA) / (b.x - a.x);
+        Vector3 coeff_texture_ab = (textureB - textureA) / (b.x - a.x);
 
         for (int minX = max(a.x.ceil(), 0),
                 x = minX,
@@ -240,9 +266,14 @@ class AppCustomPainter extends CustomPainter {
 
             final Vector3 pWorld3 = Vector3(pWorld.x, pWorld.y, pWorld.z);
             //final Vector3 lightDirection = Vector3(10, 0, -10).normalized();
-            final Vector3 viewDirection = (SceneSettings.eye - pWorld3).normalized();
+            final Vector3 viewDirection =
+                (SceneSettings.eye - pWorld3).normalized();
 
-            final Vector3 n = (normalA + coeff_normal_ab * (xD - a.x)).normalized();
+            final Vector3 texture =
+                (textureA + coeff_texture_ab * (xD - a.x)) / p.w;
+
+            final Vector3 n =
+                (normalA + coeff_normal_ab * (xD - a.x)).normalized();
 
             final double intensity = max(n.dot(-_lightDirection), 0);
 

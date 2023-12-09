@@ -21,6 +21,7 @@ class RenderScreen extends StatefulWidget {
   final Vector3 lightDirection = Vector3(-10, 0, -10);
   final List<Vector4> world = <Vector4>[];
   final List<Vector3> normals = <Vector3>[];
+  final List<Vector3> textures = <Vector3>[];
 
   RenderScreen({
     required List<FaceEntity> defaultFaces,
@@ -48,6 +49,7 @@ class _RenderScreenState extends State<RenderScreen>
         ),
         world: widget.world,
         normals: widget.normals,
+        textures: widget.textures,
         lightDirection: widget._objectParameters[AllowedActions.lightDirection]!,
       ),
     );
@@ -101,7 +103,7 @@ class _RenderScreenState extends State<RenderScreen>
     final Map<int, List<Vector4>> result = <int, List<Vector4>>{};
 
     for (int i = 0, length = entities.length; i < length; i++) {
-      final (List<Vector4>, List<Vector4>, List<Vector3>) result1 =
+      final (List<Vector4>, List<Vector4>, List<Vector3>, List<Vector3>) result1 =
           VectorTransformation.transform(
         vertices: entities[i].vertices,
         translate: widget._objectParameters[AllowedActions.translation]!,
@@ -117,6 +119,7 @@ class _RenderScreenState extends State<RenderScreen>
       );
       widget.world.addAll(result1.$2);
       widget.normals.addAll(result1.$3);
+      widget.textures.addAll(result1.$4);
     }
 
     return result;

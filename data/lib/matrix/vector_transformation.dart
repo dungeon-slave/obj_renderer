@@ -7,7 +7,8 @@ abstract class VectorTransformation {
   static (
     List<math.Vector4> viewPort,
     List<math.Vector4> world,
-    List<math.Vector3> normals
+    List<math.Vector3> normals,
+    List<math.Vector3> textures,
   ) transform({
     required List<VertexEntity> vertices,
     required math.Vector3 translate,
@@ -17,6 +18,7 @@ abstract class VectorTransformation {
   }) {
     final List<math.Vector4> vectors = <math.Vector4>[];
     final List<math.Vector3> normals = <math.Vector3>[];
+    final List<math.Vector3> textures = <math.Vector3>[];
 
     for (VertexEntity vertex in vertices) {
       if (vertex.v != null) {
@@ -36,6 +38,16 @@ abstract class VectorTransformation {
             vertex.vn!.i,
             vertex.vn!.j,
             vertex.vn!.k,
+          ),
+        );
+      }
+
+      if (vertex.vn != null) {
+        textures.add(
+          math.Vector3(
+            vertex.vt!.u,
+            vertex.vt!.v,
+            vertex.vt!.w,
           ),
         );
       }
@@ -91,6 +103,13 @@ abstract class VectorTransformation {
       },
     ).toList();
 
-    return (vecResult, world, normalsResult);
+    // final List<math.Vector3> textureResult = normals.map<math.Vector3>(
+    //   (math.Vector3 normal) {
+    //     final newVector = model * normal;
+    //     return newVector;
+    //   },
+    // ).toList();
+
+    return (vecResult, world, normalsResult, textures);
   }
 }
