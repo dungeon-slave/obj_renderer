@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 
 class RenderScreen extends StatefulWidget {
   final List<FaceEntity> _defaultFaces;
+  final Map<String, Uint8List> _objectData;
   final Map<AllowedActions, Vector3> _objectParameters =
       <AllowedActions, Vector3>{
     AllowedActions.scaling: Vector3(1, 1, 1),
@@ -25,8 +26,9 @@ class RenderScreen extends StatefulWidget {
 
   RenderScreen({
     required List<FaceEntity> defaultFaces,
+    required Map<String, Uint8List> objectData,
     super.key,
-  }) : _defaultFaces = defaultFaces;
+  }) : _defaultFaces = defaultFaces, _objectData = objectData;
 
   @override
   _RenderScreenState createState() => _RenderScreenState();
@@ -51,6 +53,7 @@ class _RenderScreenState extends State<RenderScreen>
         normals: widget.normals,
         textures: widget.textures,
         lightDirection: widget._objectParameters[AllowedActions.lightDirection]!,
+        objectData: widget._objectData,
       ),
     );
   }

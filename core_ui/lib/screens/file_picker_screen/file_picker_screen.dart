@@ -42,6 +42,7 @@ class FilePickerScreen extends StatelessWidget {
             defaultFaces: ObjParser().parseContent(
               utf8.decode(objectData['obj']!).split('\n'),
             ),
+            objectData: objectData,
           ),
         ),
       );

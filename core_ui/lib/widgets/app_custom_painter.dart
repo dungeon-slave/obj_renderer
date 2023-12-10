@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:core_ui/app_colors.dart';
 import 'package:core_ui/core_ui.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 
 class AppCustomPainter extends CustomPainter {
   final Map<int, List<Vector4>> _entities;
+  final Map<String, Uint8List> _objectData;
   final List<Vector4> _world;
   final List<Vector3> _normals;
   final List<Vector3> _textures;
@@ -25,12 +27,14 @@ class AppCustomPainter extends CustomPainter {
 
   AppCustomPainter({
     required Map<int, List<Vector4>> entities,
+    required Map<String, Uint8List> objectData,
     required List<Vector4> world,
     required List<Vector3> normals,
     required List<Vector3> textures,
     required Size screenSize,
     required Vector3 lightDirection,
   })  : _entities = entities,
+        _objectData = objectData,
         _screenSize = screenSize,
         _normals = normals,
         _textures = textures,
@@ -271,6 +275,15 @@ class AppCustomPainter extends CustomPainter {
 
             final Vector3 texture =
                 (textureA + coeff_texture_ab * (xD - a.x)) / p.w;
+
+            if(_objectData['diffuse'] != null) {
+              System.Drawing.Color objColor = Model.textureFile.GetPixel(Convert.ToInt32(texture.X *
+                  (Model.textureFile.Width - 1)), Convert.ToInt32((1 - texture.Y) *
+                  (Model.textureFile.Height - 1)));
+              Color color = _objectData['diffuse']!.(
+
+              )
+            }
 
             final Vector3 n =
                 (normalA + coeff_normal_ab * (xD - a.x)).normalized();
