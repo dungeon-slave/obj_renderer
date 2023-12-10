@@ -18,10 +18,10 @@ class AppCustomPainter extends CustomPainter {
   Map<Vector3, List<Vector3>> triangleNormals = <Vector3, List<Vector3>>{};
   Map<Vector3, Vector3> vertexNormals = <Vector3, Vector3>{};
 
-  double ambientFactor = 0.1;
-  double diffuseFactor = 30;
-  double specularFactor = 100;
-  double glossFactor = 50;
+  static const double ambientFactor = 0.1;
+  static const double diffuseFactor = 30;
+  static const double specularFactor = 100;
+  static const double glossFactor = 50;
 
   AppCustomPainter({
     required Map<int, List<Vector4>> entities,
