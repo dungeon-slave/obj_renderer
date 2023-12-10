@@ -25,7 +25,6 @@ abstract class TextureParser {
     final ImageProvider textureProvider = Image.file(File(path)).image;
     final Bitmap bitmap = await Bitmap.fromProvider(textureProvider);
 
-    print('taeasd');
     return bitmap.content;
   }
 }
