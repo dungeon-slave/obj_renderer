@@ -6,6 +6,7 @@ import 'package:core_ui/app_colors.dart';
 import 'package:core_ui/app_text_style.dart';
 import 'package:core_ui/core_ui.dart';
 import 'package:data/parser/obj_parser.dart';
+import 'package:data/parser/texture_parser.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -13,18 +14,34 @@ class FilePickerScreen extends StatelessWidget {
   const FilePickerScreen({super.key});
 
   void _tapHandler(NavigatorState navigatorState) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Select files in next order: obj, normal, mirror, diffuse',
+      allowMultiple: true,
+    );
+    final bool shouldRender = result != null;
 
-    if (result != null) {
-      Uint8List bytes = result.files.first.bytes == null
-          ? await File(result.files.first.path!).readAsBytes()
-          : result.files.first.bytes!;
+    if (shouldRender) {
+      //If you want to open in browser use .bytes
+      // Uint8List bytes = result.files.first.bytes == null
+      //     ? await File(result.files.first.path!).readAsBytes()
+      //     : result.files.first.bytes!;
+
+      final Map<String, Uint8List> objectData = <String, Uint8List>{
+        'obj': await File(result.files[0].path!).readAsBytes(),
+      }..addAll(
+          await TextureParser.parseTexture(
+            normalPath: result.files[1].path!,
+            mirrorPath: result.files[2].path!,
+            diffusePath: result.files[3].path!,
+          ),
+        );
 
       navigatorState.push(
         MaterialPageRoute(
           builder: (_) => RenderScreen(
-            defaultFaces:
-                ObjParser().parseContent(utf8.decode(bytes).split('\n')),
+            defaultFaces: ObjParser().parseContent(
+              utf8.decode(objectData['obj']!).split('\n'),
+            ),
           ),
         ),
       );
