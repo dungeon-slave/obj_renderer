@@ -1,3 +1,4 @@
+import 'package:bitmap/bitmap.dart';
 import 'package:core_ui/app_colors.dart';
 import 'package:core_ui/enums/allowed_actions.dart';
 import 'package:core_ui/widgets/app_custom_paint.dart';
@@ -11,7 +12,9 @@ import 'package:flutter/services.dart';
 
 class RenderScreen extends StatefulWidget {
   final List<FaceEntity> _defaultFaces;
-  final Map<String, Uint8List> _objectData;
+  final Map<String, Bitmap> _objectData;
+  final List<Vector3> _fileNormals;
+
   final Map<AllowedActions, Vector3> _objectParameters =
       <AllowedActions, Vector3>{
     AllowedActions.scaling: Vector3(1, 1, 1),
@@ -26,9 +29,12 @@ class RenderScreen extends StatefulWidget {
 
   RenderScreen({
     required List<FaceEntity> defaultFaces,
-    required Map<String, Uint8List> objectData,
+    required Map<String, Bitmap> objectData,
+    required List<Vector3> fileNormals,
     super.key,
-  }) : _defaultFaces = defaultFaces, _objectData = objectData;
+  })  : _defaultFaces = defaultFaces,
+        _fileNormals = fileNormals,
+        _objectData = objectData;
 
   @override
   _RenderScreenState createState() => _RenderScreenState();
@@ -52,8 +58,10 @@ class _RenderScreenState extends State<RenderScreen>
         world: widget.world,
         normals: widget.normals,
         textures: widget.textures,
-        lightDirection: widget._objectParameters[AllowedActions.lightDirection]!,
+        lightDirection:
+            widget._objectParameters[AllowedActions.lightDirection]!,
         objectData: widget._objectData,
+        fileNormals: widget._fileNormals,
       ),
     );
   }
@@ -106,8 +114,12 @@ class _RenderScreenState extends State<RenderScreen>
     final Map<int, List<Vector4>> result = <int, List<Vector4>>{};
 
     for (int i = 0, length = entities.length; i < length; i++) {
-      final (List<Vector4>, List<Vector4>, List<Vector3>, List<Vector3>) result1 =
-          VectorTransformation.transform(
+      final (
+        List<Vector4>,
+        List<Vector4>,
+        List<Vector3>,
+        List<Vector3>
+      ) result1 = VectorTransformation.transform(
         vertices: entities[i].vertices,
         translate: widget._objectParameters[AllowedActions.translation]!,
         scale: widget._objectParameters[AllowedActions.scaling]!,

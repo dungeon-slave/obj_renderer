@@ -1,16 +1,15 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:bitmap/bitmap.dart';
 import 'package:flutter/cupertino.dart';
 
 abstract class TextureParser {
-  static Future<Map<String, Uint8List>> parseTexture({
+  static Future<Map<String, Bitmap>> parseTexture({
     required String normalPath,
     required String mirrorPath,
     required String diffusePath,
   }) {
-    return Future<Map<String, Uint8List>>(
+    return Future<Map<String, Bitmap>>(
       () async {
         return {
           'diffuse': await _parseTextureFile(diffusePath),
@@ -21,10 +20,9 @@ abstract class TextureParser {
     );
   }
 
-  static Future<Uint8List> _parseTextureFile(String path) async {
+  static Future<Bitmap> _parseTextureFile(String path) async {
     final ImageProvider textureProvider = Image.file(File(path)).image;
-    final Bitmap bitmap = await Bitmap.fromProvider(textureProvider);
 
-    return bitmap.content;
+    return await Bitmap.fromProvider(textureProvider);
   }
 }

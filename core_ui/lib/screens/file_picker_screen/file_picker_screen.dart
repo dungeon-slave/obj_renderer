@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:bitmap/bitmap.dart';
 import 'package:core_ui/app_colors.dart';
 import 'package:core_ui/app_text_style.dart';
 import 'package:core_ui/core_ui.dart';
+import 'package:data/data.dart';
 import 'package:data/parser/obj_parser.dart';
 import 'package:data/parser/texture_parser.dart';
 import 'package:file_picker/file_picker.dart';
@@ -22,27 +24,49 @@ class FilePickerScreen extends StatelessWidget {
 
     if (shouldRender) {
       //If you want to open in browser use .bytes
-      // Uint8List bytes = result.files.first.bytes == null
-      //     ? await File(result.files.first.path!).readAsBytes()
-      //     : result.files.first.bytes!;
+      final Uint8List bytes = result.files[1].bytes == null
+          ? await File(result.files[1].path!).readAsBytes()
+          : result.files[1].bytes!;
 
-      final Map<String, Uint8List> objectData = <String, Uint8List>{
-        'obj': await File(result.files[0].path!).readAsBytes(),
-      }..addAll(
-          await TextureParser.parseTexture(
-            normalPath: result.files[1].path!,
-            mirrorPath: result.files[2].path!,
-            diffusePath: result.files[3].path!,
-          ),
-        );
+      final Map<String, Bitmap> objectData = await TextureParser.parseTexture(
+        normalPath: result.files[2].path!,
+        mirrorPath: result.files[3].path!,
+        diffusePath: result.files[0].path!,
+      );
+
+      final List<Vector3> fileNormals = List.filled(
+        objectData['normal']!.width * objectData['normal']!.height,
+        Vector3.zero(),
+        growable: false,
+      );
+
+      for (int i = 0; i < objectData['normal']!.width; i++) {
+        for (int j = 0; j < objectData['normal']!.height; j++) {
+          final int index =
+              i * objectData['normal']!.width + j; //GetPixel(i, j);
+          final Color normalColor = Color.fromARGB(
+            255,
+            objectData['normal']!.content[index],
+            objectData['normal']!.content[index + 1],
+            objectData['normal']!.content[index + 2],
+          );
+
+          Vector3 normal = Vector3(normalColor.red / 255,
+              normalColor.green / 255, normalColor.blue / 255);
+
+          normal = (normal * 2) - Vector3(1, 1, 1);
+          normal = normal.normalized();
+          fileNormals[index] = normal;
+        }
+      }
 
       navigatorState.push(
         MaterialPageRoute(
           builder: (_) => RenderScreen(
-            defaultFaces: ObjParser().parseContent(
-              utf8.decode(objectData['obj']!).split('\n'),
-            ),
+            defaultFaces:
+                ObjParser().parseContent(utf8.decode(bytes).split('\n')),
             objectData: objectData,
+            fileNormals: fileNormals,
           ),
         ),
       );

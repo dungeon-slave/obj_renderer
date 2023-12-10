@@ -1,6 +1,6 @@
 import 'dart:math';
-import 'dart:typed_data';
 
+import 'package:bitmap/bitmap.dart';
 import 'package:core_ui/app_colors.dart';
 import 'package:core_ui/core_ui.dart';
 import 'package:data/data.dart';
@@ -8,10 +8,11 @@ import 'package:flutter/material.dart';
 
 class AppCustomPainter extends CustomPainter {
   final Map<int, List<Vector4>> _entities;
-  final Map<String, Uint8List> _objectData;
+  final Map<String, Bitmap> _objectData;
   final List<Vector4> _world;
   final List<Vector3> _normals;
   final List<Vector3> _textures;
+  final List<Vector3> _fileNormals;
   final Paint _paint = Paint();
   final Size _screenSize;
   final double _dotSize = 1;
@@ -27,10 +28,11 @@ class AppCustomPainter extends CustomPainter {
 
   AppCustomPainter({
     required Map<int, List<Vector4>> entities,
-    required Map<String, Uint8List> objectData,
+    required Map<String, Bitmap> objectData,
     required List<Vector4> world,
     required List<Vector3> normals,
     required List<Vector3> textures,
+    required List<Vector3> fileNormals,
     required Size screenSize,
     required Vector3 lightDirection,
   })  : _entities = entities,
@@ -38,6 +40,7 @@ class AppCustomPainter extends CustomPainter {
         _screenSize = screenSize,
         _normals = normals,
         _textures = textures,
+        _fileNormals = fileNormals,
         _lightDirection = lightDirection,
         _world = world;
 
@@ -269,63 +272,83 @@ class AppCustomPainter extends CustomPainter {
             zBuffer[pos] = p.z;
 
             final Vector3 pWorld3 = Vector3(pWorld.x, pWorld.y, pWorld.z);
-            //final Vector3 lightDirection = Vector3(10, 0, -10).normalized();
             final Vector3 viewDirection =
                 (SceneSettings.eye - pWorld3).normalized();
 
             final Vector3 texture =
                 (textureA + coeff_texture_ab * (xD - a.x)) / p.w;
 
-            if(_objectData['diffuse'] != null) {
-              System.Drawing.Color objColor = Model.textureFile.GetPixel(Convert.ToInt32(texture.X *
-                  (Model.textureFile.Width - 1)), Convert.ToInt32((1 - texture.Y) *
-                  (Model.textureFile.Height - 1)));
-              Color color = _objectData['diffuse']!.(
+            final Bitmap? diffuseBitmap = _objectData['diffuse'];
 
-              )
+            Color color = AppColors.lightColor;
+            if (diffuseBitmap != null) {
+              final int x =
+                  (texture.x * (diffuseBitmap.width /* - 1*/)).toInt();
+              final int y =
+                  ((1 - texture.y) * (diffuseBitmap.height /* - 1*/)).toInt();
+
+              final index = (y * diffuseBitmap.width + x) * 4;
+              color = Color.fromARGB(
+                diffuseBitmap.content[index + 3],
+                diffuseBitmap.content[index],
+                diffuseBitmap.content[index + 1],
+                diffuseBitmap.content[index + 2],
+              );
             }
 
-            final Vector3 n =
-                (normalA + coeff_normal_ab * (xD - a.x)).normalized();
+            final Bitmap? mirrorBitmap = _objectData['mirror'];
 
-            final double intensity = max(n.dot(-_lightDirection), 0);
+            Color specular = AppColors.lightColor;
+            if (mirrorBitmap != null) {
+              final int x = (texture.x * (mirrorBitmap.width /* - 1*/)).toInt();
+              final int y =
+                  ((1 - texture.y) * (mirrorBitmap.height /* - 1*/)).toInt();
+
+              final index = (y * mirrorBitmap.width + x) * 4;
+              specular = Color.fromARGB(
+                mirrorBitmap.content[index + 3],
+                mirrorBitmap.content[index],
+                mirrorBitmap.content[index + 1],
+                mirrorBitmap.content[index + 2],
+              );
+            }
+
+            final Bitmap? normalBitmap = _objectData['normal'];
+
+            Vector3 normal = Vector3(1, 1, 1);
+            if (normalBitmap != null) {
+              final int buf1 =
+                  ((normalBitmap.width /* - 1*/) * texture.x).toInt();
+              final int buf2 =
+                  ((normalBitmap.height /* - 1*/) * (1 - texture.y)).toInt();
+
+              normal = _fileNormals[buf1 * normalBitmap.width + buf2];
+            } else {
+              normal = (normalA + coeff_normal_ab * (xD - a.x));
+            }
+            normal = normal.normalized();
+
+            final double intensity = max(normal.dot(-_lightDirection), 0);
 
             // Затенение объекта в зависимости от дистанции света до модели.
             final double distance = _lightDirection.length2;
             final double attenuation = 1 / max(distance, 15);
 
-            final List<int> ambientValues = ambientLightning();
+            final List<int> ambientValues = ambientLightning(color);
             final List<int> diffuseValues =
-                diffuseLightning(intensity * attenuation);
+                diffuseLightning(intensity * attenuation, color);
             final List<int> specularValues = specularLightning(
               viewDirection,
               _lightDirection,
-              n,
+              normal,
+              specular,
             );
 
             _paint.color = Color.fromARGB(
               255,
-              min(
-                  AppColors.objectColor.red *
-                      (ambientValues[0] +
-                          diffuseValues[0] +
-                          specularValues[0]) ~/
-                      255,
-                  255),
-              min(
-                  AppColors.objectColor.green *
-                      (ambientValues[1] +
-                          diffuseValues[1] +
-                          specularValues[1]) ~/
-                      255,
-                  255),
-              min(
-                  AppColors.objectColor.blue *
-                      (ambientValues[2] +
-                          diffuseValues[2] +
-                          specularValues[2]) ~/
-                      255,
-                  255),
+              min(ambientValues[0] + diffuseValues[0] + specularValues[0], 255),
+              min(ambientValues[1] + diffuseValues[1] + specularValues[1], 255),
+              min(ambientValues[2] + diffuseValues[2] + specularValues[2], 255),
             );
 
             canvas.drawRect(
@@ -344,24 +367,24 @@ class AppCustomPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 
-  List<int> ambientLightning() {
+  List<int> ambientLightning(Color lightColor) {
     return List.generate(
       3,
       (int index) {
         switch (index) {
           case 0:
-            return (AppColors.lightColor.red * ambientFactor).toInt();
+            return (lightColor.red * ambientFactor).toInt();
           case 1:
-            return (AppColors.lightColor.green * ambientFactor).toInt();
+            return (lightColor.green * ambientFactor).toInt();
           default:
-            return (AppColors.lightColor.blue * ambientFactor).toInt();
+            return (lightColor.blue * ambientFactor).toInt();
         }
       },
       growable: false,
     );
   }
 
-  List<int> diffuseLightning(double intensity) {
+  List<int> diffuseLightning(double intensity, Color lightColor) {
     final double scalar = intensity * diffuseFactor;
 
     return List.generate(
@@ -369,11 +392,11 @@ class AppCustomPainter extends CustomPainter {
       (int index) {
         switch (index) {
           case 0:
-            return (AppColors.lightColor.red * scalar).toInt();
+            return (lightColor.red * scalar).toInt();
           case 1:
-            return (AppColors.lightColor.green * scalar).toInt();
+            return (lightColor.green * scalar).toInt();
           default:
-            return (AppColors.lightColor.blue * scalar).toInt();
+            return (lightColor.blue * scalar).toInt();
         }
       },
       growable: false,
@@ -384,6 +407,7 @@ class AppCustomPainter extends CustomPainter {
     Vector3 view,
     Vector3 lightDirection,
     Vector3 normal,
+    Color specular,
   ) {
     final Vector3 reflection = (lightDirection).reflected(normal).normalized();
     final double rv = max(reflection.dot(view), 0);
@@ -391,7 +415,16 @@ class AppCustomPainter extends CustomPainter {
 
     return List.generate(
       3,
-      (_) => (specularFactor * temp).toInt(),
+      (int index) {
+        switch (index) {
+          case 0:
+            return (specular.red * temp).toInt();
+          case 1:
+            return (specular.green * temp).toInt();
+          default:
+            return (specular.blue * temp).toInt();
+        }
+      },
       growable: false,
     );
   }
