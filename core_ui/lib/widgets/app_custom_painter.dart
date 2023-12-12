@@ -317,12 +317,19 @@ class AppCustomPainter extends CustomPainter {
 
             Vector3 normal = Vector3(1, 1, 1);
             if (normalBitmap != null) {
-              final int buf1 =
-                  ((normalBitmap.width /* - 1*/) * texture.x).toInt();
-              final int buf2 =
-                  ((normalBitmap.height /* - 1*/) * (1 - texture.y)).toInt();
+              final int x = (texture.x * (normalBitmap.width /* - 1*/)).toInt();
+              final int y =
+                  ((1 - texture.y) * (normalBitmap.height /* - 1*/)).toInt();
 
-              normal = _fileNormals[buf1 * normalBitmap.width + buf2];
+              final index = (y * normalBitmap.width + x) * 4;
+              specular = Color.fromARGB(
+                normalBitmap.content[index + 3],
+                normalBitmap.content[index],
+                normalBitmap.content[index + 1],
+                normalBitmap.content[index + 2],
+              );
+
+              normal = (normal * 2 - Vector3(1, 1, 1)).normalized();
             } else {
               normal = (normalA + coeff_normal_ab * (xD - a.x));
             }
