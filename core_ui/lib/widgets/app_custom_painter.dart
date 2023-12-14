@@ -12,7 +12,6 @@ class AppCustomPainter extends CustomPainter {
   final List<Vector4> _world;
   final List<Vector3> _normals;
   final List<Vector3> _textures;
-  final List<Vector3> _fileNormals;
   final Paint _paint = Paint();
   final Size _screenSize;
   final double _dotSize = 1;
@@ -40,7 +39,6 @@ class AppCustomPainter extends CustomPainter {
         _screenSize = screenSize,
         _normals = normals,
         _textures = textures,
-        _fileNormals = fileNormals,
         _lightDirection = lightDirection,
         _world = world;
 
@@ -316,23 +314,31 @@ class AppCustomPainter extends CustomPainter {
             final Bitmap? normalBitmap = _objectData['normal'];
 
             Vector3 normal = Vector3(1, 1, 1);
+            Color normalColor;
             if (normalBitmap != null) {
               final int x = (texture.x * (normalBitmap.width /* - 1*/)).toInt();
               final int y =
                   ((1 - texture.y) * (normalBitmap.height /* - 1*/)).toInt();
 
               final index = (y * normalBitmap.width + x) * 4;
-              specular = Color.fromARGB(
-                normalBitmap.content[index + 3],
-                normalBitmap.content[index],
-                normalBitmap.content[index + 1],
-                normalBitmap.content[index + 2],
+              normalColor = Color.fromARGB(
+                normalBitmap.content[index + 3] ~/ 255,
+                normalBitmap.content[index] ~/ 255,
+                normalBitmap.content[index + 1] ~/ 255,
+                normalBitmap.content[index + 2] ~/ 255,
               );
 
-              normal = (normal * 2 - Vector3(1, 1, 1)).normalized();
-            } else {
-              normal = (normalA + coeff_normal_ab * (xD - a.x));
+              normal = Vector3(
+                normalColor.red.toDouble(),
+                normalColor.green.toDouble(),
+                normalColor.blue.toDouble(),
+              );
+
+              normal = (normal * 2 - Vector3(1, 1, 1));
             }
+
+            normal = (normalA + coeff_normal_ab * (xD - a.x));
+
             normal = normal.normalized();
 
             final double intensity = max(normal.dot(-_lightDirection), 0);
