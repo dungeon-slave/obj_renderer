@@ -16,10 +16,17 @@ class AppCustomPainter extends CustomPainter {
   final Size _screenSize;
   final double _dotSize = 1;
   final Vector3 _lightDirection;
+  late List<double?> _zBuffer;
+
+  late List<List<double?>> zBufferOIT;
 
   final Map<Vector3, List<Vector3>> triangleNormals =
       <Vector3, List<Vector3>>{};
   final Map<Vector3, Vector3> vertexNormals = <Vector3, Vector3>{};
+
+  double get _screenSizeInPixels => _screenSize.width * _screenSize.height;
+
+  double? _previousSize;
 
   static const double ambientFactor = 0.1;
   static const double diffuseFactor = 30;
@@ -44,11 +51,7 @@ class AppCustomPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, _) {
-    final List<double?> zBuffer = List.filled(
-      (_screenSize.height.toInt()) * (_screenSize.width.toInt()),
-      null,
-      growable: false,
-    );
+    _generateZBuffer();
 
     for (int i = 0, length = _entities.values.length; i < length - 3; i++) {
       final List<Vector4> triangle = _entities.values.elementAt(i);
@@ -206,8 +209,10 @@ class AppCustomPainter extends CustomPainter {
 
           final int width = _screenSize.width.toInt();
           final int pos = y * width + x;
-          if (zBuffer[pos] == null || zBuffer[pos]! > p.z) {
-            zBuffer[pos] = p.z;
+
+          //TODO Implement zBufferOIT insted of zBuffer
+          if (_zBuffer[pos] == null || _zBuffer[pos]! > p.z) {
+            _zBuffer[pos] = p.z;
 
             final Vector3 pWorld3 = Vector3(pWorld.x, pWorld.y, pWorld.z);
             final Vector3 viewDirection =
@@ -318,6 +323,26 @@ class AppCustomPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+
+  void _generateZBuffer() {
+    if (_previousSize != _screenSizeInPixels) {
+      // _zBuffer = List.filled(
+      //   _screenSizeInPixels.toInt(),
+      //   null,
+      //   growable: false,
+      // );
+      zBufferOIT = List<List<double?>>.filled(
+        _screenSizeInPixels.toInt(),
+        List<double?>.filled(
+          0,
+          null,
+          growable: true,
+        ),
+        growable: false,
+      );
+      _previousSize = _screenSizeInPixels;
+    }
+  }
 
   List<int> ambientLightning(Color lightColor) {
     return List.generate(
