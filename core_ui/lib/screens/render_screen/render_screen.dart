@@ -13,7 +13,6 @@ import 'package:flutter/services.dart';
 class RenderScreen extends StatefulWidget {
   final List<FaceEntity> _defaultFaces;
   final Map<String, Bitmap> _objectData;
-  final List<Vector3> _fileNormals;
 
   final Map<AllowedActions, Vector3> _objectParameters =
       <AllowedActions, Vector3>{
@@ -30,10 +29,8 @@ class RenderScreen extends StatefulWidget {
   RenderScreen({
     required List<FaceEntity> defaultFaces,
     required Map<String, Bitmap> objectData,
-    required List<Vector3> fileNormals,
     super.key,
   })  : _defaultFaces = defaultFaces,
-        _fileNormals = fileNormals,
         _objectData = objectData;
 
   @override
@@ -61,7 +58,6 @@ class _RenderScreenState extends State<RenderScreen>
         lightDirection:
             widget._objectParameters[AllowedActions.lightDirection]!,
         objectData: widget._objectData,
-        fileNormals: widget._fileNormals,
       ),
     );
   }

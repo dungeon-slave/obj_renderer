@@ -14,6 +14,27 @@ abstract class TransformMatrix {
     return Matrix4.rotationX(radians);
   }
 
+  static Matrix4 rotationX() {
+    return Matrix4(
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+    );
+  }
+
   static Matrix4 yRotationMatrix(double radians) {
     return Matrix4.rotationY(radians);
   }

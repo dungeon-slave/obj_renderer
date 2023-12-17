@@ -17,10 +17,11 @@ abstract class VectorTransformation {
     required Size size,
   }) {
     final List<math.Vector4> vectors = <math.Vector4>[];
+    final List<math.Vector4> world = <math.Vector4>[];
     final List<math.Vector3> normals = <math.Vector3>[];
     final List<math.Vector3> textures = <math.Vector3>[];
 
-    for (VertexEntity vertex in vertices) {
+    for (final VertexEntity vertex in vertices) {
       if (vertex.v != null) {
         vectors.add(
           math.Vector4(
@@ -42,7 +43,7 @@ abstract class VectorTransformation {
         );
       }
 
-      if (vertex.vn != null) {
+      if (vertex.vt != null) {
         textures.add(
           math.Vector3(
             vertex.vt!.u,
@@ -59,25 +60,18 @@ abstract class VectorTransformation {
         TransformMatrix.zRotationMatrix(rotation.z) *
         TransformMatrix.scaleMatrix(scale);
 
-    // final math.Matrix4 result = TransformMatrix.createViewPort(
-    //       size.width,
-    //       size.height,
-    //     ) *
-    //     TransformMatrix.createPerspectiveMatrix() *
-    //     TransformMatrix.createViewMatrix() *
-    //     model;
-
-    //model * vector
-    //view * newVector
-    //perspective * newVector2
-    //newVector2 / newVector2.w
-    //viewPort * newVector3
-
-    final List<math.Vector4> world = <math.Vector4>[];
     final List<math.Vector4> vecResult = vectors.map<math.Vector4>(
-      (math.Vector4 vector) {
+      (final math.Vector4 vector) {
         final newVector = model * vector;
-        world.add(newVector);
+
+        final math.Vector4 worldVector = math.Vector4(
+          newVector.x,
+          newVector.y,
+          newVector.z,
+          1 / newVector.w,
+        );
+
+        world.add(worldVector);
         final viewMatrix = TransformMatrix.createViewMatrix();
         final newVector2 = viewMatrix * newVector;
 
@@ -92,23 +86,17 @@ abstract class VectorTransformation {
         );
         final newVector5 = viewPort * newVector4;
 
-        return newVector5;
-      } /*result * vector / vector.w*/,
-    ).toList();
+        newVector5.w = 1 / newVector3.w;
 
-    final List<math.Vector3> normalsResult = normals.map<math.Vector3>(
-      (math.Vector3 normal) {
-        final newVector = model * normal;
-        return newVector;
+        return newVector5;
       },
     ).toList();
 
-    // final List<math.Vector3> textureResult = normals.map<math.Vector3>(
-    //   (math.Vector3 normal) {
-    //     final newVector = model * normal;
-    //     return newVector;
-    //   },
-    // ).toList();
+    final List<math.Vector3> normalsResult = normals
+        .map<math.Vector3>(
+          (final math.Vector3 normal) => model * normal,
+        )
+        .toList();
 
     return (vecResult, world, normalsResult, textures);
   }

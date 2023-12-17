@@ -17,8 +17,9 @@ class AppCustomPainter extends CustomPainter {
   final double _dotSize = 1;
   final Vector3 _lightDirection;
 
-  Map<Vector3, List<Vector3>> triangleNormals = <Vector3, List<Vector3>>{};
-  Map<Vector3, Vector3> vertexNormals = <Vector3, Vector3>{};
+  final Map<Vector3, List<Vector3>> triangleNormals =
+      <Vector3, List<Vector3>>{};
+  final Map<Vector3, Vector3> vertexNormals = <Vector3, Vector3>{};
 
   static const double ambientFactor = 0.1;
   static const double diffuseFactor = 30;
@@ -31,7 +32,6 @@ class AppCustomPainter extends CustomPainter {
     required List<Vector4> world,
     required List<Vector3> normals,
     required List<Vector3> textures,
-    required List<Vector3> fileNormals,
     required Size screenSize,
     required Vector3 lightDirection,
   })  : _entities = entities,
@@ -44,34 +44,20 @@ class AppCustomPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, _) {
-    List<double?> zBuffer = List.filled(
+    final List<double?> zBuffer = List.filled(
       (_screenSize.height.toInt()) * (_screenSize.width.toInt()),
       null,
       growable: false,
     );
 
-    //findNormals();
-
     for (int i = 0, length = _entities.values.length; i < length - 3; i++) {
       final List<Vector4> triangle = _entities.values.elementAt(i);
-      int pos = i * 3;
+      final int pos = i * 3;
       final List<Vector4> triangleWorld = _world.sublist(pos, pos + 3);
       final List<Vector3> normals = _normals.sublist(pos, pos + 3);
       final List<Vector3> textures = _textures.sublist(pos, pos + 3);
-
-      // Формирование треугольников в экранных и мировых координатах
-      // Vector4 edge1World = triangleWorld[1] - triangleWorld[0];
-      // Vector4 edge2World = triangleWorld[2] - triangleWorld[0];
-
-      Vector4 edge1 = triangle[1] - triangle[0];
-      Vector4 edge2 = triangle[2] - triangle[0];
-
-      // Vector3 normalWorld = Vector3(
-      //   edge1World.y * edge2World.z - edge1World.z * edge2World.y,
-      //   edge1World.z * edge2World.x - edge1World.x * edge2World.z,
-      //   edge1World.x * edge2World.y - edge1World.y * edge2World.x,
-      // ).normalized();
-
+      final Vector4 edge1 = triangle[1] - triangle[0];
+      final Vector4 edge2 = triangle[2] - triangle[0];
       final Vector3 normal = Vector3(
         edge1.y * edge2.z - edge1.z * edge2.y,
         edge1.z * edge2.x - edge1.x * edge2.z,
@@ -84,51 +70,14 @@ class AppCustomPainter extends CustomPainter {
         continue;
       }
 
-      // triangleWorld[0] *= triangle[0].w;
-      // triangleWorld[1] *= triangle[1].w;
-      // triangleWorld[2] *= triangle[2].w;
-
       // Поиск нормали по вершинам.
-      Vector3 vertexNormal0 = normals[0].normalized() * triangle[0].w;
-      Vector3 vertexNormal1 = normals[1].normalized() * triangle[1].w;
-      Vector3 vertexNormal2 = normals[2].normalized() * triangle[2].w;
+      Vector3 vertexNormal0 = normals[0].normalized() /* * triangle[0].w*/;
+      Vector3 vertexNormal1 = normals[1].normalized() /* * triangle[1].w*/;
+      Vector3 vertexNormal2 = normals[2].normalized() /* * triangle[2].w*/;
 
       Vector3 texture0 = textures[0] * triangle[0].w;
       Vector3 texture1 = textures[1] * triangle[1].w;
       Vector3 texture2 = textures[2] * triangle[2].w;
-
-      // // Поиск нормали по вершинам треугольника
-      // Vector3 vertexNormal0 = vertexNormals[
-      //     Vector3(triangleWorld[0].x, triangleWorld[0].y, triangleWorld[0].z)]!.normalized();
-      // Vector3 vertexNormal1 = vertexNormals[
-      //     Vector3(triangleWorld[1].x, triangleWorld[1].y, triangleWorld[1].z)]!.normalized();
-      // Vector3 vertexNormal2 = vertexNormals[
-      //     Vector3(triangleWorld[2].x, triangleWorld[2].y, triangleWorld[2].z)]!.normalized();
-
-      // triangleWorld[0] *= triangle[0].w;
-      // triangleWorld[1] *= triangle[1].w;
-      // triangleWorld[2] *= triangle[2].w;
-
-      // Инетнсивность света для 2ой лабы
-      // Vector3 lightDirection = Vector3(-1, -1, -1).normalized();
-      // double intensity = max(normalWorld.dot(-lightDirection), 0);
-      //
-      // List<int> ambientValues = ambientLightning();
-      // List<int> diffuseValues = diffuseLightning(intensity);
-
-      // _paint.color = Color.fromARGB(
-      //   255,
-      //   (AppColors.vertexColor.red * intensity).toInt(),
-      //   (AppColors.vertexColor.green * intensity).toInt(),
-      //   (AppColors.vertexColor.blue * intensity).toInt(),
-      // );
-
-      // _paint.color = Color.fromARGB(
-      //   255,
-      //   min(ambientValues[0] + diffuseValues[0], 255),
-      //   min(ambientValues[1] + diffuseValues[1], 255),
-      //   min(ambientValues[2] + diffuseValues[2], 255),
-      // );
 
       // Сортировка вершин треугольников
       Vector4 temp;
@@ -169,42 +118,34 @@ class AppCustomPainter extends CustomPainter {
         (vertexNormal1, vertexNormal2) = (vertexNormal2, vertexNormal1);
         (texture1, texture2) = (texture2, texture1);
       }
-      //
-      // // Поиск нормали по вершинам треугольника
-      // Vector3 vertexNormal0 = vertexNormals[
-      //     Vector3(triangleWorld[0].x, triangleWorld[0].y, triangleWorld[0].z)]!.normalized();
-      // Vector3 vertexNormal1 = vertexNormals[
-      //     Vector3(triangleWorld[1].x, triangleWorld[1].y, triangleWorld[1].z)]!.normalized();
-      // Vector3 vertexNormal2 = vertexNormals[
-      //     Vector3(triangleWorld[2].x, triangleWorld[2].y, triangleWorld[2].z)]!.normalized();
 
       // Нахождение коэффицентов в экранных и мировых координатах и коэффицента для нормалей.
-      Vector4 coefficient1 =
+      final Vector4 coefficient1 =
           (triangle[1] - triangle[0]) / (triangle[1].y - triangle[0].y);
-      Vector4 coefficient2 =
+      final Vector4 coefficient2 =
           (triangle[2] - triangle[0]) / (triangle[2].y - triangle[0].y);
-      Vector4 coefficient3 =
+      final Vector4 coefficient3 =
           (triangle[2] - triangle[1]) / (triangle[2].y - triangle[1].y);
 
-      Vector4 coefficient1World = (triangleWorld[1] - triangleWorld[0]) /
+      final Vector4 coefficient1World = (triangleWorld[1] - triangleWorld[0]) /
           (triangle[1].y - triangle[0].y);
-      Vector4 coefficient2World = (triangleWorld[2] - triangleWorld[0]) /
+      final Vector4 coefficient2World = (triangleWorld[2] - triangleWorld[0]) /
           (triangle[2].y - triangle[0].y);
-      Vector4 coefficient3World = (triangleWorld[2] - triangleWorld[1]) /
+      final Vector4 coefficient3World = (triangleWorld[2] - triangleWorld[1]) /
           (triangle[2].y - triangle[1].y);
 
-      Vector3 coefficient1Normal =
+      final Vector3 coefficient1Normal =
           (vertexNormal1 - vertexNormal0) / (triangle[1].y - triangle[0].y);
-      Vector3 coefficient2Normal =
+      final Vector3 coefficient2Normal =
           (vertexNormal2 - vertexNormal0) / (triangle[2].y - triangle[0].y);
-      Vector3 coefficient3Normal =
+      final Vector3 coefficient3Normal =
           (vertexNormal2 - vertexNormal1) / (triangle[2].y - triangle[1].y);
 
-      Vector3 coefficient1Texture =
+      final Vector3 coefficient1Texture =
           (texture1 - texture0) / (triangle[1].y - triangle[0].y);
-      Vector3 coefficient2Texture =
+      final Vector3 coefficient2Texture =
           (texture2 - texture0) / (triangle[2].y - triangle[0].y);
-      Vector3 coefficient3Texture =
+      final Vector3 coefficient3Texture =
           (texture2 - texture1) / (triangle[2].y - triangle[1].y);
 
       for (int minY = max(triangle[0].y.ceil(), 0),
@@ -212,7 +153,6 @@ class AppCustomPainter extends CustomPainter {
               maxY = min(triangle[2].y.ceil(), _screenSize.height.toInt() - 1);
           y < maxY;
           y++) {
-        // Нахождение левого и правого Y
         Vector4 a = triangle[0] + coefficient2 * (y - triangle[0].y);
 
         Vector4 b = y > triangle[1].y
@@ -239,7 +179,7 @@ class AppCustomPainter extends CustomPainter {
             ? texture1 + coefficient3Texture * (y - triangle[1].y)
             : texture0 + coefficient1Texture * (y - triangle[0].y);
 
-        double yD = y.toDouble();
+        final double yD = y.toDouble();
 
         if (a.x > b.x) {
           (a, b) = (b, a);
@@ -249,23 +189,23 @@ class AppCustomPainter extends CustomPainter {
         }
 
         // Нахождение коэффицентов изменения X в экранных и мировых координатах, коэффицента изменения нормали.
-        Vector4 coeff_ab = (b - a) / (b.x - a.x);
-        Vector4 coeff_world_ab = (worldB - worldA) / (b.x - a.x);
-        Vector3 coeff_normal_ab = (normalB - normalA) / (b.x - a.x);
-        Vector3 coeff_texture_ab = (textureB - textureA) / (b.x - a.x);
+        final Vector4 coeff_ab = (b - a) / (b.x - a.x);
+        final Vector4 coeff_world_ab = (worldB - worldA) / (b.x - a.x);
+        final Vector3 coeff_normal_ab = (normalB - normalA) / (b.x - a.x);
+        final Vector3 coeff_texture_ab = (textureB - textureA) / (b.x - a.x);
 
         for (int minX = max(a.x.ceil(), 0),
                 x = minX,
                 maxX = min(b.x.ceil(), _screenSize.width.toInt() - 1);
             x < maxX;
             x++) {
-          double xD = x.toDouble();
+          final double xD = x.toDouble();
 
-          Vector4 p = a + coeff_ab * (xD - a.x);
-          Vector4 pWorld = worldA + coeff_world_ab * (xD - a.x);
+          final Vector4 p = a + coeff_ab * (xD - a.x);
+          final Vector4 pWorld = worldA + coeff_world_ab * (xD - a.x);
 
-          int width = _screenSize.width.toInt();
-          int pos = y * width + x;
+          final int width = _screenSize.width.toInt();
+          final int pos = y * width + x;
           if (zBuffer[pos] == null || zBuffer[pos]! > p.z) {
             zBuffer[pos] = p.z;
 
@@ -280,10 +220,12 @@ class AppCustomPainter extends CustomPainter {
 
             Color color = AppColors.lightColor;
             if (diffuseBitmap != null) {
-              final int x =
-                  (texture.x * (diffuseBitmap.width /* - 1*/)).toInt();
+              final transformedX = texture.x;
+              final transformedY = texture.y;
+
+              final int x = (transformedX * (diffuseBitmap.width - 1)).toInt();
               final int y =
-                  ((1 - texture.y) * (diffuseBitmap.height /* - 1*/)).toInt();
+                  ((1 - transformedY) * (diffuseBitmap.height - 1)).toInt();
 
               final index = (y * diffuseBitmap.width + x) * 4;
               color = Color.fromARGB(
@@ -336,10 +278,7 @@ class AppCustomPainter extends CustomPainter {
 
               normal = (normal * 2 - Vector3(1, 1, 1));
             }
-
-            normal = (normalA + coeff_normal_ab * (xD - a.x));
-
-            normal = normal.normalized();
+            normal = (normalA + coeff_normal_ab * (xD - a.x)).normalized();
 
             final double intensity = max(normal.dot(-_lightDirection), 0);
 
@@ -440,43 +379,5 @@ class AppCustomPainter extends CustomPainter {
       },
       growable: false,
     );
-  }
-
-  void findNormals() {
-    triangleNormals.clear();
-    vertexNormals.clear();
-
-    for (int i = 0, length = _entities.values.length; i < length - 3; i++) {
-      int pos = i * 3;
-      final List<Vector4> triangleWorld = _world.sublist(pos, pos + 3);
-
-      Vector4 edge1World = triangleWorld[1] - triangleWorld[0];
-      Vector4 edge2World = triangleWorld[2] - triangleWorld[0];
-
-      Vector3 normalWorld = Vector3(
-        edge1World.y * edge2World.z - edge1World.z * edge2World.y,
-        edge1World.z * edge2World.x - edge1World.x * edge2World.z,
-        edge1World.x * edge2World.y - edge1World.y * edge2World.x,
-      ).normalized();
-
-      for (final Vector4 vertex in triangleWorld) {
-        final Vector3 tempVertex = Vector3(vertex.x, vertex.y, vertex.z);
-        if (triangleNormals.containsKey(tempVertex)) {
-          triangleNormals[tempVertex]!.add(normalWorld);
-        } else {
-          triangleNormals[tempVertex] = <Vector3>[normalWorld];
-        }
-      }
-    }
-
-    for (final item in triangleNormals.entries) {
-      Vector3 temp = Vector3.zero();
-
-      for (int i = 0; i < item.value.length; i++) {
-        temp += item.value[i];
-      }
-
-      vertexNormals[item.key] = temp / item.value.length.toDouble();
-    }
   }
 }

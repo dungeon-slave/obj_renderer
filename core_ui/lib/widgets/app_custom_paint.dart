@@ -10,7 +10,6 @@ class AppCustomPaint extends StatefulWidget {
   final List<Vector3> _normals;
   final List<Vector3> _textures;
   final Vector3 _lightDirection;
-  final List<Vector3> _fileNormals;
 
   const AppCustomPaint({
     required Map<int, List<Vector4>> entities,
@@ -19,14 +18,12 @@ class AppCustomPaint extends StatefulWidget {
     required List<Vector3> normals,
     required List<Vector3> textures,
     required Vector3 lightDirection,
-    required List<Vector3> fileNormals,
     super.key,
   })  : _entities = entities,
         _objectData = objectData,
         _normals = normals,
         _textures = textures,
         _lightDirection = lightDirection,
-        _fileNormals = fileNormals,
         _world = world;
 
   @override
@@ -50,7 +47,6 @@ class _AppCustomPaintState extends State<AppCustomPaint> {
           textures: widget._textures,
           lightDirection: widget._lightDirection,
           objectData: widget._objectData,
-          fileNormals: widget._fileNormals,
         ),
       ),
     );
