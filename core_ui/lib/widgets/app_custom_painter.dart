@@ -49,9 +49,23 @@ class AppCustomPainter extends CustomPainter {
         _lightDirection = lightDirection,
         _world = world;
 
+  //c_source + (1 - alpha_source) * c_dest
+  //alpha_source + (1 - alpha_source) * alpha_dest
+  //only diffuse multiple on alpha
+
+  //buffer with all pixels
+  //buffer with counts
+  //buffer with result colors
+
   @override
   void paint(Canvas canvas, _) {
     _generateZBuffer();
+    final List<double> allPixelsBuffer = <double>[];
+    final List<int> deepnessBuffer = List.filled(
+      (_screenSize.width * _screenSize.height).toInt(),
+      0,
+    );
+    //_generateAllPixels
 
     for (int i = 0, length = _entities.values.length; i < length - 3; i++) {
       final List<Vector4> triangle = _entities.values.elementAt(i);
@@ -205,6 +219,9 @@ class AppCustomPainter extends CustomPainter {
           final double xD = x.toDouble();
 
           final Vector4 p = a + coeff_ab * (xD - a.x);
+          final int deepnessIndex = (p.x * _screenSize.height + p.y).toInt();
+
+          deepnessBuffer[deepnessIndex]++;
           final Vector4 pWorld = worldA + coeff_world_ab * (xD - a.x);
 
           final int width = _screenSize.width.toInt();
