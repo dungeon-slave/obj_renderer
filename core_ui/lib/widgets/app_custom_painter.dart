@@ -424,7 +424,7 @@ class AppCustomPainter extends CustomPainter {
       destColor.blue,
     );
 
-    //TODO think about it
+    //TODO think about alpha in color blend
     int alphaValue = currColor.alpha;
     for (int i = 0, len = sublist.length; i < len; i++) {
       //alphaValue = 255 - currColor.alpha;
