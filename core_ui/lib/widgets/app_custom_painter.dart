@@ -284,8 +284,8 @@ class AppCustomPainter extends CustomPainter {
           final Vector4 p = a + coeff_ab * (xD - a.x);
           final Vector4 pWorld = worldA + coeff_world_ab * (xD - a.x);
 
+          //TODO maybe problem in this part
           final int value = _deepnessBuffer[pos] + _deepnessBuffer2[pos];
-
           final List<Vector3> drawable =
               offsetBuffer.sublist(_deepnessBuffer[pos], value);
 
@@ -424,19 +424,26 @@ class AppCustomPainter extends CustomPainter {
       destColor.blue,
     );
 
-    //TODO think about alpha in color blend
-    int alphaValue = currColor.alpha;
+    int alphaValue;
+    double alphaMultiplier;
     for (int i = 0, len = sublist.length; i < len; i++) {
-      //alphaValue = 255 - currColor.alpha;
+      alphaMultiplier = (255 - currColor.alpha) / 255;
+      alphaValue =
+          (currColor.alpha + destColor.alpha * alphaMultiplier).toInt();
 
       currColor = Color.fromARGB(
-        currColor.alpha + alphaValue * destColor.alpha,
-        currColor.red + alphaValue * destColor.red,
-        currColor.green + alphaValue * destColor.green,
-        currColor.blue + alphaValue * destColor.blue,
+        alphaValue,
+        (currColor.red * currColor.alpha + destColor.red * alphaMultiplier) ~/
+            alphaValue,
+        (currColor.green * currColor.alpha +
+                destColor.green * alphaMultiplier) ~/
+            alphaValue,
+        (currColor.blue * currColor.alpha + destColor.blue * alphaMultiplier) ~/
+            alphaValue,
       );
 
-      alphaValue = 255 - currColor.alpha;
+      //A0 = Aa + Ab * (1 - Aa)
+      //C0 = (Ca * Aa + Cb * Ab * (1 - Aa)) ~/ A0
     }
 
     return currColor;
