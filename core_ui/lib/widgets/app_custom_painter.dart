@@ -273,6 +273,7 @@ class AppCustomPainter extends CustomPainter {
         final Vector4 coeff_ab = (b - a) / (b.x - a.x);
         final Vector4 coeff_world_ab = (worldB - worldA) / (b.x - a.x);
         final Vector3 coeff_texture_ab = (textureB - textureA) / (b.x - a.x);
+        //final Vector3 coeff_normal_ab = (normalB - normalA) / (b.x - a.x);
 
         for (int minX = max(a.x.ceil(), 0),
                 x = minX,
@@ -328,23 +329,25 @@ class AppCustomPainter extends CustomPainter {
 
           //NORMAL BITMAP
           final Bitmap normalBitmap = _objectData['normal']!;
-          Vector3 normal = Vector3(1, 1, 1);
-          Color normalColor;
           final int xNor = (texture.x * (normalBitmap.width)).toInt();
           final int yNor = ((1 - texture.y) * (normalBitmap.height)).toInt();
-          final indexNor = (yNor * normalBitmap.width + xNor) * 4;
-          normalColor = Color.fromARGB(
+          final int indexNor = (yNor * normalBitmap.width + xNor) * 4;
+          final Color normalColor = Color.fromARGB(
             normalBitmap.content[indexNor + 3],
             normalBitmap.content[indexNor],
             normalBitmap.content[indexNor + 1],
             normalBitmap.content[indexNor + 2],
           );
-          normal = Vector3(
-            normalColor.red.toDouble(),
-            normalColor.green.toDouble(),
-            normalColor.blue.toDouble(),
-          );
-          normal = (normal * 2 - Vector3(1, 1, 1)).normalized();
+          final Vector3 normal = (Vector3(
+                        normalColor.red.toDouble(),
+                        normalColor.green.toDouble(),
+                        normalColor.blue.toDouble(),
+                      ) *
+                      2 -
+                  Vector3.all(1))
+              .normalized();
+          //normal = (normalA + coeff_normal_ab * (xD - a.x));
+          //normal = (normal * 2 - Vector3(1, 1, 1)).normalized();
 
           final double intensity = max(normal.dot(-_lightDirection), 0);
 

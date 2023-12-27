@@ -16,100 +16,65 @@ abstract class VectorTransformation {
     required math.Vector3 rotation,
     required Size size,
   }) {
-    final List<math.Vector4> vectors = <math.Vector4>[];
-    final List<math.Vector3> normals = <math.Vector3>[];
-    final List<math.Vector3> textures = <math.Vector3>[];
-
-    for (VertexEntity vertex in vertices) {
-      if (vertex.v != null) {
-        vectors.add(
-          math.Vector4(
-            vertex.v!.x,
-            vertex.v!.y,
-            vertex.v!.z,
-            vertex.v!.w,
-          ),
-        );
-      }
-
-      if (vertex.vn != null) {
-        normals.add(
-          math.Vector3(
-            vertex.vn!.i,
-            vertex.vn!.j,
-            vertex.vn!.k,
-          ),
-        );
-      }
-
-      if (vertex.vn != null) {
-        textures.add(
-          math.Vector3(
-            vertex.vt!.u,
-            vertex.vt!.v,
-            vertex.vt!.w,
-          ),
-        );
-      }
-    }
+    final List<math.Vector3> textures = List.filled(
+      vertices.length,
+      math.Vector3.zero(),
+    );
+    final List<math.Vector4> world = List.filled(
+      vertices.length,
+      math.Vector4.zero(),
+    );
+    final List<math.Vector4> vectors = List.filled(
+      vertices.length,
+      math.Vector4.zero(),
+    );
+    final List<math.Vector3> normals = List.filled(
+      vertices.length,
+      math.Vector3.zero(),
+    );
 
     final math.Matrix4 model = TransformMatrix.translateMatrix(translate) *
         TransformMatrix.xRotationMatrix(rotation.x) *
         TransformMatrix.yRotationMatrix(rotation.y) *
         TransformMatrix.zRotationMatrix(rotation.z) *
         TransformMatrix.scaleMatrix(scale);
+    final math.Matrix4 perspectiveMatrix =
+        TransformMatrix.createPerspectiveMatrix(
+      size.width,
+      size.height,
+    );
+    final math.Matrix4 viewMatrix = TransformMatrix.createViewMatrix();
+    final math.Matrix4 viewPort = TransformMatrix.createViewPort(
+      size.width,
+      size.height,
+    );
 
-    // final math.Matrix4 result = TransformMatrix.createViewPort(
-    //       size.width,
-    //       size.height,
-    //     ) *
-    //     TransformMatrix.createPerspectiveMatrix() *
-    //     TransformMatrix.createViewMatrix() *
-    //     model;
+    for (int i = 0, len = vertices.length; i < len; i++) {
+      final worldVector = model *
+          math.Vector4(
+            vertices[i].v!.x,
+            vertices[i].v!.y,
+            vertices[i].v!.z,
+            vertices[i].v!.w,
+          );
+      final viewPortVector = perspectiveMatrix * viewMatrix * worldVector;
+      final viewVectorEnd = viewPort * viewPortVector / viewPortVector.w;
 
-    //model * vector
-    //view * newVector
-    //perspective * newVector2
-    //newVector2 / newVector2.w
-    //viewPort * newVector3
+      vectors[i] = viewVectorEnd;
+      world[i] = worldVector;
+      normals[i] = model *
+          math.Vector3(
+            vertices[i].vn!.i,
+            vertices[i].vn!.j,
+            vertices[i].vn!.k,
+          );
+      textures[i] = math.Vector3(
+        vertices[i].vt!.u,
+        vertices[i].vt!.v,
+        vertices[i].vt!.w,
+      );
+    }
 
-    final List<math.Vector4> world = <math.Vector4>[];
-    final List<math.Vector4> vecResult = vectors.map<math.Vector4>(
-      (math.Vector4 vector) {
-        final newVector = model * vector;
-        world.add(newVector);
-        final viewMatrix = TransformMatrix.createViewMatrix();
-        final newVector2 = viewMatrix * newVector;
-
-        final perspectiveMatrix =
-            TransformMatrix.createPerspectiveMatrix(size.width, size.height);
-        final newVector3 = perspectiveMatrix * newVector2;
-        final newVector4 = newVector3 / newVector3.w;
-
-        final viewPort = TransformMatrix.createViewPort(
-          size.width,
-          size.height,
-        );
-        final newVector5 = viewPort * newVector4;
-
-        return newVector5;
-      } /*result * vector / vector.w*/,
-    ).toList();
-
-    final List<math.Vector3> normalsResult = normals.map<math.Vector3>(
-      (math.Vector3 normal) {
-        final newVector = model * normal;
-        return newVector;
-      },
-    ).toList();
-
-    // final List<math.Vector3> textureResult = normals.map<math.Vector3>(
-    //   (math.Vector3 normal) {
-    //     final newVector = model * normal;
-    //     return newVector;
-    //   },
-    // ).toList();
-
-    return (vecResult, world, normalsResult, textures);
+    return (vectors, world, normals, textures);
   }
 }

@@ -46,7 +46,7 @@ class _RenderScreenState extends State<RenderScreen>
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.sizeOf(context);
+    final Size size = MediaQuery.sizeOf(context);
 
     return Container(
       color: AppColors.backGroundColor,
